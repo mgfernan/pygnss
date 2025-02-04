@@ -1,0 +1,6 @@
+[submodule "submodules/hatanakalib"]
+	path = submodules/hatanakalib
+	url = git@github.com:mgfernan/hatanakalib.git
+[submodule "hatanakalib"]
+	path = hatanakalib
+	url = git@github.com:mgfernan/hatanakalib.git

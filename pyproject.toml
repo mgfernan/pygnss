@@ -1,0 +1,72 @@
+[project]
+name = "pygnss"
+version = "0.0.0"
+description = "Package with utilities and tools for GNSS data processing"
+authors = [
+  { name = "Miquel Garcia-Fernandez", email = "miquel@mgfernan.com" }
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "numpy",
+    "pandas >= 2.2",
+    "pyarrow >= 18.0.0"
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest >= 8.3.4",
+  "pytest-env >= 1.1.5",
+  "pytest-mocha >= 0.4.0",
+  "flake8 >= 7.0.0",
+]
+release = [
+  "python-semantic-release >= 9.4.0",
+]
+
+[project.scripts]
+cl = "pygnss.cl:entry_point"
+tensorial = "pygnss.tensorial:entry_point"
+compute_cdf = "pygnss.stats:cdf_cli"
+rinex_from_file = "pygnss.rinex:rinex_from_file"
+merge_rinex_nav = "pygnss.rinex:merge_nav_cli"
+rinex_to_parquet = "pygnss.rinex:rinex_to_parquet"
+
+[tool.semantic_release]
+version_variables = [
+    "pygnss/__init__.py:__version__"
+]
+version_toml = [
+    "pyproject.toml:project.version"
+]
+tag_format = "{version}"
+branch = "master"
+upload_to_pypi = true
+upload_to_release = true
+build_command = "pip install ."
+
+[tool.semantic_release.changelog]
+exclude_commit_patterns = ["build", "ci", "doc", "chore", "test"]
+
+[tool.semantic_release.remote]
+type = "github"
+
+[build-system]
+requires = ["build", "setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[[tool.setuptools.ext-modules]]
+name = "pygnss._c_ext"
+sources = [
+    "pygnss/_c_ext/src/helpers.c",
+    "pygnss/_c_ext/src/hatanaka.c",
+    "pygnss/_c_ext/src/mtable_init.c",
+    "submodules/hatanakalib/hatanaka/src/common.c",
+    "submodules/hatanakalib/hatanaka/src/crx2rnx.c"
+]
+include-dirs = ["pygnss/", "submodules/hatanakalib"]
+
+[tool.setuptools.packages.find]
+include = ["pygnss", "pygnss.*"]

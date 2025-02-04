@@ -1,0 +1,27 @@
+/.cache/
+/.tox/
+
+*.swp
+__pycache__/
+build/
+dist/
+*.egg-info/
+*.whl
+
+.venv
+.eggs
+.vscode
+.idea/
+
+poetry.lock
+
+tmp
+
+setup.py
+
+*.so
+
+# Jupyter related folders
+.jupyter
+.local
+.ipython

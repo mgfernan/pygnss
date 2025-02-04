@@ -1,0 +1,10 @@
+version: "3.6"
+
+services:
+
+  python:
+    image: python:3.10
+    volumes:
+      - $PWD:/src/:delegated
+    stdin_open: true
+    tty: true

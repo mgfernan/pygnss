@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  python:
+    image: python:3.10-slim
+    volumes:
+      - $PWD:/src
+    working_dir: '/src'
+    stdin_open: true
+    tty: true
+    command: ["bash", "-c", "pip install -e .[test] && bash"]
