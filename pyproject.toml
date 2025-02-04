@@ -43,9 +43,6 @@ version_toml = [
 ]
 tag_format = "{version}"
 branch = "trunk"
-upload_to_pypi = true
-upload_to_release = true
-build_command = "pip install ."
 
 [tool.semantic_release.changelog]
 exclude_commit_patterns = ["build", "ci", "doc", "chore", "test"]
