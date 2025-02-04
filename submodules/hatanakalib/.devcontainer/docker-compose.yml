@@ -1,9 +1,0 @@
-version: "3.6"
-
-services:
-  core:
-    image: gcc:14.2.0
-    volumes:
-      - $PWD:/src/:delegated
-    stdin_open: true
-    tty: true
