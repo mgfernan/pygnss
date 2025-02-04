@@ -35,7 +35,7 @@ jobs:
         pip install -v .[test]
 
     - name: Lint with flake8
-      run: flake8 roktools --count --select=E9,F63,F7,F82 --show-source --statistics --ignore F821
+      run: flake8 pygnss --count --select=E9,F63,F7,F82 --show-source --statistics --ignore F821
 
     - name: Build wheel
       run: |
@@ -45,7 +45,7 @@ jobs:
       run: |
         python3 -m venv .venv
         source .venv/bin/activate
-        pip install roktools-*.whl
+        pip install pygnss-*.whl
         pytest -v
 
 
