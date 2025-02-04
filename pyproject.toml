@@ -42,7 +42,7 @@ version_toml = [
     "pyproject.toml:project.version"
 ]
 tag_format = "{version}"
-branch = "master"
+branch = "trunk"
 upload_to_pypi = true
 upload_to_release = true
 build_command = "pip install ."

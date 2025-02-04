@@ -41,7 +41,7 @@ ValueError: Exception message
 
 ## Deployment to PyPi
 
-The project is published automatically using internal Gitlab CI on each commit to master to PyPi repository [pygnss](https://pypi.org/project/pygnss/)
+The project is published automatically using internal Gitlab CI on each commit to `trunk` to PyPi repository [pygnss](https://pypi.org/project/pygnss/)
 
 It uses semantic versioning and conventional commits to set the version and [semantic-release](https://python-semantic-release.readthedocs.io/en/latest/index.html) as
 versioning tool.

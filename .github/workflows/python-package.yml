@@ -2,9 +2,9 @@ name: Python package
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "trunk" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "trunk" ]
 
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
   tag:
     needs: test
 
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'chore(release):')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/trunk' && !contains(github.event.head_commit.message, 'chore(release):')
     runs-on: ubuntu-latest
     # Specifying a GitHub environment is optional, but strongly encouraged
     environment: pypi
