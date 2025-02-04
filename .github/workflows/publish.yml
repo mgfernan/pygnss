@@ -11,7 +11,7 @@ jobs:
   publish:
 
     # Trigger only if the commit starts with a number (i.e. semantic release version number)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/trunk' && !startsWith(github.event.head_commit.author.name, 'semantic-release')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/trunk' && startsWith(github.event.head_commit.author.name, 'semantic-release')
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
