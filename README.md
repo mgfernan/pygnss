@@ -1,16 +1,10 @@
-# pyrok-tools
-
-Python tools used in internal Rokubun projects. This repository contains the following modules:
-
-- `logger`, a module that extends basic Python logging
-- `geodetic`, to perform basic geodetic transformation (Cartesian to Geodetic,
-  Cartesian to Local Tangential Plane, ...)
+# GNSS and Navigation modules
 
 ## Installation
 
 To make sure that the extensions are installed along with the package, run
 
-`pip install pygnss*.whl`
+`pip install pygnss`
 
 ## Modules
 
@@ -38,10 +32,3 @@ Traceback (most recent call last):
   ...
 ValueError: Exception message
 ```
-
-## Deployment to PyPi
-
-The project is published automatically using internal Gitlab CI on each commit to `trunk` to PyPi repository [pygnss](https://pypi.org/project/pygnss/)
-
-It uses semantic versioning and conventional commits to set the version and [semantic-release](https://python-semantic-release.readthedocs.io/en/latest/index.html) as
-versioning tool.
