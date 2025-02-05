@@ -3,7 +3,6 @@
 
 #include "hatanaka/include/crx2rnx.h"
 
-static const int N_FIELDS = 4;  // Number of fields for struct gnss_meas
 
 static char* get_crx_line(void* _args, size_t n_max, char* dst) {
 
@@ -20,6 +19,8 @@ static bool is_eof(void* _args) {
 }
 
 static int on_measurement(const struct gnss_meas* gnss_meas, void* _args) {
+
+    static const int N_FIELDS = 5;  // Number of fields for struct gnss_meas
 
     int ret = -1;
     PyObject* list = (PyObject*)_args;
@@ -41,10 +42,11 @@ static int on_measurement(const struct gnss_meas* gnss_meas, void* _args) {
     PyList_SetItem(row, 1, PyUnicode_FromStringAndSize(gnss_meas->satid, 3));
     PyList_SetItem(row, 2, PyUnicode_FromStringAndSize(gnss_meas->rinex3_code, 3));
     PyList_SetItem(row, 3, PyFloat_FromDouble(gnss_meas->value));
+    PyList_SetItem(row, 4, PyLong_FromUnsignedLong(gnss_meas->lli));
 
     // Add inner lists to the outer list
     PyList_Append(list, row);
-    Py_DECREF(row); // Decrement the reference count of 'row'
+    Py_DECREF(row);  // Decrement the reference count of 'row'
 
     ret = 0;
 exit:
