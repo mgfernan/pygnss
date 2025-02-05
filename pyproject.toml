@@ -42,7 +42,10 @@ version_toml = [
     "pyproject.toml:project.version"
 ]
 tag_format = "{version}"
-branch = "trunk"
+
+[tool.semantic_release.branches.main]
+match = "(trunk)"
+prerelease = false
 
 [tool.semantic_release.changelog]
 exclude_commit_patterns = ["build", "ci", "doc", "chore", "test"]
