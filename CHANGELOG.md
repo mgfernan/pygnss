@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## v0.1.1 (2025-02-05)
+
+### Bug Fixes
+
+- **_c_ext**: Add cycle slip column
+  ([`2ac6611`](https://github.com/mgfernan/pygnss/commit/2ac66114c622cdfec18f9e636b87a9662e2d38f0))
+
+Computed from the LLI phase flag
+
+
 ## v0.1.0 (2025-02-05)
 
 ### Features
