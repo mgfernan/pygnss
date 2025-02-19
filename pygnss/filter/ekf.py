@@ -36,7 +36,7 @@ class Ekf(object):
 
         self.L = len(self.x)
 
-    def process(self, y_k: np.array, R: np.array):
+    def process(self, y_k: np.array, R: np.array, **kwargs):
         """
         Process an observation batch
         """
@@ -45,7 +45,7 @@ class Ekf(object):
         x_m, P_m = self._time_update()
 
         # Measurement update ---------------------------------------------------
-        y_m, H = self.model.to_observations(x_m, compute_jacobian=True)
+        y_m, H = self.model.to_observations(x_m, compute_jacobian=True, **kwargs)
 
         P_yy = H @ P_m @ H.T + R
         P_xy = P_m @ H.T
@@ -62,7 +62,10 @@ class Ekf(object):
         except np.linalg.LinAlgError as e:
             self.logger.warning(f'Unable to compute state, keeping previous one. Error: {e}')
 
-        self.state_handler.process_state(self.x, self.P)
+        # Compute postfit residuals
+        r = y_k - self.model.to_observations(self.x, **kwargs).y_m
+
+        self.state_handler.process_state(self.x, self.P, postfits=r, **kwargs)
 
     def _time_update(self) -> Tuple[np.array, np.array]:
         """

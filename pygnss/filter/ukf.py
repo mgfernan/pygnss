@@ -60,7 +60,7 @@ class Ukf(object):
         self.w_m[0] = k
         self.w_c[0] = k + 1 - alpha2 + beta
 
-    def process(self, y_k: np.array, R: np.array):
+    def process(self, y_k: np.array, R: np.array, **kwargs):
         """
         Process an observation batch
 
@@ -85,7 +85,7 @@ class Ukf(object):
         P_m = self.Q + _weighted_average_of_outer_product(spread_chi_m, spread_chi_m, self.w_c)
 
         # Propagate the sigma points to the observation space (psi_m, $\mathcal{Y}_{k|k-1}$)
-        psi_m = np.array([self.model.to_observations(sigma_point).y_m for sigma_point in chi_m])
+        psi_m = np.array([self.model.to_observations(sigma_point, **kwargs).y_m for sigma_point in chi_m])
         n_dim = len(psi_m.shape)
         if n_dim == 1:
             raise ValueError(f'Unexpected size for sigma point propagation, got [ {n_dim} ], '
@@ -115,7 +115,10 @@ class Ukf(object):
         except np.linalg.LinAlgError as e:
             self.logger.warning(f'Unable to compute state, keeping previous one. Error: {e}')
 
-        self.state_handler.process_state(self.x, self.P)
+        # Compute postfit residuals
+        r = y_k - self.model.to_observations(self.x, **kwargs).y_m
+
+        self.state_handler.process_state(self.x, self.P, postfits=r, **kwargs)
 
     def _generate_sigma_points(self) -> np.array:
         """

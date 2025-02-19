@@ -33,7 +33,7 @@ class Model(ABC):
         """
 
     @abstractmethod
-    def to_observations(self, state: np.array, compute_jacobian: bool = False) -> ModelObs:
+    def to_observations(self, state: np.array, compute_jacobian: bool = False, **kwargs) -> ModelObs:
         """
         Propagate a state to its corresponding modelled observations (i.e.
         compute expected observations/measurements for the input state)
@@ -56,7 +56,7 @@ class StateHandler(ABC):
     """
 
     @abstractmethod
-    def process_state(self, state: np.array, covariance_matrix: np.array):
+    def process_state(self, state: np.array, covariance_matrix: np.array, **kwargs):
         """
         Process the state and associated covariance_matrix
         """
