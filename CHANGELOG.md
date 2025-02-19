@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## v0.2.0 (2025-02-19)
+
+### Features
+
+- **filter**: Add kwargs in ekf/ukf process
+  ([`8007178`](https://github.com/mgfernan/pygnss/commit/800717873861525d7f59cfcf08198141bc8d1fd8))
+
+The kwargs allows add metadata to the handler of the solution
+
+
 ## v0.1.1 (2025-02-05)
 
 ### Bug Fixes
