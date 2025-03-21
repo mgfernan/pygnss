@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.4.0 (2025-03-21)
+
+### Features
+
+- **iono**: Add Gim class and subtraction operation
+  ([`d7bc63a`](https://github.com/mgfernan/pygnss/commit/d7bc63a4cfd251cec007af5dc70c45d387cd3470))
+
+
 ## v0.3.0 (2025-03-21)
 
 ### Features
