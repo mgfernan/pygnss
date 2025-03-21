@@ -6,10 +6,10 @@ from typing import Tuple
 
 import numpy as np
 
-from . import StateHandler, Model
+from . import StateHandler, Model, FilterInterface
 
 
-class Ekf(object):
+class Ekf(FilterInterface):
     """
     Extended Kalman Filter (EKF)
     """

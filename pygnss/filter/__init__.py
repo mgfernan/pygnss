@@ -13,9 +13,11 @@ state k-1 to the predicted state ($x_m$)
 """
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from typing import Tuple
+from typing import List
 
 import numpy as np
+
+State = List[float]  # e.g. np.array
 
 ModelObs = namedtuple('ModelObs', ('y_m', 'H'))  # y_m must be an array of arrays (2D shaped)
 
@@ -59,4 +61,17 @@ class StateHandler(ABC):
     def process_state(self, state: np.array, covariance_matrix: np.array, **kwargs):
         """
         Process the state and associated covariance_matrix
+        """
+
+
+class FilterInterface(ABC):
+    """Interface for the Filter class"""
+
+    @abstractmethod
+    def process(self, y_k: np.array, R: np.array, **kwargs):
+        """
+        Process an observation batch
+
+        :param y_k: object that contains the observations
+        :param R: matrix with the covariance of the measurement (i.e. measurement noise)
         """

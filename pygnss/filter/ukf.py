@@ -2,10 +2,10 @@ import logging
 
 import numpy as np
 
-from . import StateHandler, Model
+from . import StateHandler, Model, FilterInterface
 
 
-class Ukf(object):
+class Ukf(FilterInterface):
     """
     Class to implement the Unscented Kalman Filter (UKF)
     """

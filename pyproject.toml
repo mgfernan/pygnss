@@ -22,6 +22,7 @@ test = [
   "pytest-env >= 1.1.5",
   "pytest-mocha >= 0.4.0",
   "flake8 >= 7.0.0",
+  "pnt_datasets"
 ]
 release = [
   "python-semantic-release >= 9.4.0",
