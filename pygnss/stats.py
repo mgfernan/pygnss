@@ -70,6 +70,6 @@ def rms(values: Iterable) -> float:
 
     >>> array = [1, 2, 3, 4, 5]
     >>> rms(array)
-    np.float64(3.3166247903554)
+    3.3166247903554
     """
     return np.sqrt(np.mean(np.square(values)))
