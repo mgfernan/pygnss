@@ -701,7 +701,7 @@ def body_to_enu(yaw_deg, pitch_deg, roll_deg, x, y, z, matrix=None):
     BODY_TO_ENU_MATRIX IS ACTUALLY IMPLEMENTING BODY2NED_MATRIX!!!!!!
 
     >>> body_to_enu(0, 0, 0, 1, 1, 1)
-    (np.float64(1.0), np.float64(1.0), np.float64(-1.0))
+    (1.0, 1.0, -1.0)
 
     >>> enu = body_to_enu(90, 0, 0, 1, 1, 1)
     >>> np.round(enu)
@@ -809,11 +809,11 @@ def enu_to_ecef(longitude_deg, latitude_deg, e, n, u, matrix=None):
 
     >>> enu = (0.5, 0.5, 1.0)
     >>> enu_to_ecef(0, 0, *enu)
-    (np.float64(1.0), np.float64(0.5), np.float64(0.5))
+    (1.0, 0.5, 0.5)
 
     >>> enu = (0.0, 0.0, 1.0)
     >>> enu_to_ecef(0, 0, *enu)
-    (np.float64(1.0), np.float64(0.0), np.float64(0.0))
+    (1.0, 0.0, 0.0)
 
     >>> lons = [90, 180, 270]
     >>> lats = [0, 0, 0]
@@ -822,23 +822,23 @@ def enu_to_ecef(longitude_deg, latitude_deg, e, n, u, matrix=None):
     >>> us = [1, -1, -1]
     >>> dxyz = enu_to_ecef(lons, lats, es, ns, us)
     >>> round(dxyz[0][0], 8)
-    np.float64(1.0)
+    1.0
     >>> round(dxyz[0][1], 8)
-    np.float64(1.0)
+    1.0
     >>> round(dxyz[0][2], 8)
-    np.float64(1.0)
+    1.0
     >>> round(dxyz[1][0], 8)
-    np.float64(1.0)
+    1.0
     >>> round(dxyz[1][1], 8)
-    np.float64(1.0)
+    1.0
     >>> round(dxyz[1][2], 8)
-    np.float64(1.0)
+    1.0
     >>> round(dxyz[2][0], 8)
-    np.float64(1.0)
+    1.0
     >>> round(dxyz[2][1], 8)
-    np.float64(1.0)
+    1.0
     >>> round(dxyz[2][2], 8)
-    np.float64(1.0)
+    1.0
     """
 
     if matrix is None:
@@ -860,12 +860,12 @@ def xyz_to_enu(ref_pos, x, y, z, a=WGS84_A, e=WGS84_E):
     >>> dxyz = (1.0, 0.0, 0.0)      # Deviation relative to reference position
     >>> enu = xyz_to_enu(xyz, *dxyz)  # Conversion to ENU at reference position
     >>> enu
-    (np.float64(0.0), np.float64(0.0), np.float64(1.0))
+    (0.0, 0.0, 1.0)
 
     >>> enu = (0.5, 0.5, 1.0)
     >>> dxyz = enu_to_ecef(0, 0, *enu)
     >>> dxyz
-    (np.float64(1.0), np.float64(0.5), np.float64(0.5))
+    (1.0, 0.5, 0.5)
     >>> xyz_to_enu(xyz, *dxyz) == enu
     True
     """
@@ -886,16 +886,16 @@ def ecef_to_enu(longitude_deg, latitude_deg, x, y, z, matrix=None):
 
     >>> dxyz = (1, 0, 0)
     >>> ecef_to_enu(0, 0, *dxyz)
-    (np.float64(0.0), np.float64(0.0), np.float64(1.0))
+    (0.0, 0.0, 1.0)
 
     >>> dxyz = (1, 0.5, 0.5)
     >>> ecef_to_enu(0, 0, *dxyz)
-    (np.float64(0.5), np.float64(0.5), np.float64(1.0))
+    (0.5, 0.5, 1.0)
 
     >>> enu = (0.5, 0.5, 1)
     >>> dxyz = enu_to_ecef(0, 0, *enu)
     >>> dxyz
-    (np.float64(1.0), np.float64(0.5), np.float64(0.5))
+    (1.0, 0.5, 0.5)
     >>> ecef_to_enu(0, 0, *dxyz) == enu
     True
     """
