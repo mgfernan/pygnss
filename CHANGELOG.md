@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.3.0 (2025-03-21)
+
+### Features
+
+- **nequick**: Add to_ionex method
+  ([`c24da02`](https://github.com/mgfernan/pygnss/commit/c24da02318883aeb1f3509e9957e969a85e5ac34))
+
+
 ## v0.2.0 (2025-02-19)
 
 ### Features
