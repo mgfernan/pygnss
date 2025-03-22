@@ -1,8 +1,20 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import datetime
+import enum
 from typing import List
 
 import numpy as np
+
+
+class GimType(enum.Enum):
+    """
+    Type of Global Ionospheric Map (VTEC, RMS)
+    """
+
+    TEC = enum.auto()
+    RMS = enum.auto()
+
 
 @dataclass
 class Gim():
@@ -21,6 +33,39 @@ class Gim():
         """
 
         return subtract(self, other)
+
+
+class GimHandler(ABC):
+
+    @abstractmethod
+    def process(self, gim: Gim, type: GimType):
+        """
+        Process a GIM file
+        """
+        pass
+
+class GimHandlerArray(GimHandler):
+    """
+    Handler to store the incoming GIMs in arrays
+    """
+
+    def __init__(self):
+        self.vtec_gims = []
+        self.rms_gims = []
+
+    def process(self, gim: Gim, type: GimType):
+        """
+        Process a GIM file
+        """
+
+        if type == GimType.TEC:
+            self.vtec_gims.append(gim)
+
+        elif type == GimType.RMS:
+            self.rms_gims.append(gim)
+
+        else:
+            raise ValueError(f'Gim Type [ {type} ] not supported')
 
 
 def subtract(lhs: Gim, rhs: Gim) -> Gim:
@@ -52,3 +97,35 @@ def subtract(lhs: Gim, rhs: Gim) -> Gim:
         latitudes=lhs.latitudes,
         vtec_values=vtec_diff.tolist(),
     )
+
+
+def subtract_gims(lhs: List[Gim], rhs: List[Gim]) -> List[Gim]:
+    """
+    Subtract the VTEC values of two lists of GIMs (lhs - rhs).
+
+    The subtraction is performed only for GIMs with matching epochs, latitudes, and longitudes.
+    If a GIM in one list does not have a matching epoch in the other list, it is ignored.
+
+    :param lhs: The first list of GIMs (left-hand operand).
+    :param rhs: The second list of GIMs (right-hand operand).
+    :return: A list of GIMs resulting from the subtraction.
+    :raises ValueError: If latitudes or longitudes do not match for matching epochs.
+    """
+    result = []
+
+    # Create a dictionary for quick lookup of GIMs in the rhs list by epoch
+    rhs_dict = {gim.epoch: gim for gim in rhs}
+
+    for gim_lhs in lhs:
+
+        # Check if there is a matching epoch in the rhs list
+        if gim_lhs.epoch in rhs_dict:
+            gim_rhs = rhs_dict[gim_lhs.epoch]
+
+            try:
+                result.append(gim_lhs - gim_rhs)
+            except ValueError as e:
+                raise ValueError(f"Error subtracting GIMs for epoch {gim_lhs.epoch}: {e}")
+
+    return result
+
