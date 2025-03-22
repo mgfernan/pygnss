@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v0.5.0 (2025-03-22)
+
+### Features
+
+- **ionex**: Add subtract IONEX files
+  ([`2bcd2a8`](https://github.com/mgfernan/pygnss/commit/2bcd2a892296ac3290761d4f1f017390f21ba130))
+
+Feature to compute the difference between two IONEX files. Tests have been added to check this
+  feature
+
+
 ## v0.4.0 (2025-03-21)
 
 ### Features
