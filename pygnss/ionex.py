@@ -1,5 +1,7 @@
+import argparse
 import datetime
 import math
+import os
 from typing import List
 
 import numpy as np
@@ -132,7 +134,7 @@ def write(filename: str, gims: List[gim.Gim], gim_type: gim.GimType,
 
 
 
-def diff(filename_lhs: str, filename_rhs: str, output_file: str) -> None:
+def diff(filename_lhs: str, filename_rhs: str, output_file: str, pgm="pygnss.ionex") -> None:
     """
     Compute the difference between two IONEX files and write the result in IONEX format
     """
@@ -145,7 +147,14 @@ def diff(filename_lhs: str, filename_rhs: str, output_file: str) -> None:
 
     gim_diffs = gim.subtract_gims(gim_handler_lhs.vtec_gims, gim_handler_rhs.vtec_gims)
 
-    write(output_file, gim_diffs, gim.GimType.TEC)
+    comment_lines = [
+        "This IONEX file contains the differences of VTEC values,",
+        "computed as vtec_left - vtec_right, where:",
+        f"- vtec_left: {os.path.basename(filename_lhs)}",
+        f"- vtec_right: {os.path.basename(filename_rhs)}",
+    ]
+
+    write(output_file, gim_diffs, gim.GimType.TEC, pgm=pgm, comment_lines=comment_lines)
 
 
 @read_contents
@@ -257,3 +266,37 @@ def _parse_ionex_epoch(ionex_line: str) -> datetime.datetime:
     _HEADER_EPOCH_FORMAT = "  %Y    %m    %d    %H    %M    %S"
 
     return datetime.datetime.strptime(ionex_line[:36], _HEADER_EPOCH_FORMAT)
+
+
+def cli():
+    """
+    This function allows users to compute the difference between two IONEX files
+    and save the result in a new IONEX file.
+    """
+    parser = argparse.ArgumentParser(
+        description="Compute the difference between two IONEX files and save the result in a new IONEX file."
+    )
+
+    parser.add_argument(
+        "lhs",
+        type=str,
+        help="Path to the first IONEX file (left-hand side).",
+    )
+
+    parser.add_argument(
+        "rhs",
+        type=str,
+        help="Path to the second IONEX file (right-hand side).",
+    )
+
+    parser.add_argument(
+        "output",
+        type=str,
+        help="Path to the output IONEX file where the differences will be saved.",
+    )
+
+    args = parser.parse_args()
+
+    PGM = "ionex_diff"
+
+    diff(args.lhs, args.rhs, args.output, pgm=PGM)

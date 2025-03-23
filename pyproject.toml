@@ -29,6 +29,7 @@ release = [
 
 [project.scripts]
 cl = "pygnss.cl:entry_point"
+ionex_diff = "pygnss.ionex:cli"
 tensorial = "pygnss.tensorial:entry_point"
 compute_cdf = "pygnss.stats:cdf_cli"
 rinex_from_file = "pygnss.rinex:rinex_from_file"
