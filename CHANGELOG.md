@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.6.0 (2025-03-23)
+
+### Features
+
+- **ionex**: Expose ionex diff as client program
+  ([`a9175ea`](https://github.com/mgfernan/pygnss/commit/a9175eab5e7183b0ddd604dc48c0fd4bd3b0a856))
+
+
 ## v0.5.0 (2025-03-22)
 
 ### Features
