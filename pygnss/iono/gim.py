@@ -50,8 +50,8 @@ class GimHandlerArray(GimHandler):
     """
 
     def __init__(self):
-        self.vtec_gims = []
-        self.rms_gims = []
+        self.vtec_gims: List[Gim] = []
+        self.rms_gims: List[Gim] = []
 
     def process(self, gim: Gim, type: GimType):
         """

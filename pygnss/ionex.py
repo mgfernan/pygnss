@@ -4,7 +4,9 @@ import math
 import os
 from typing import List
 
+import nequick
 import numpy as np
+
 
 from .iono import gim
 from .decorator import read_contents
@@ -268,14 +270,43 @@ def _parse_ionex_epoch(ionex_line: str) -> datetime.datetime:
     return datetime.datetime.strptime(ionex_line[:36], _HEADER_EPOCH_FORMAT)
 
 
+
+class NeQuickGimHandlerArray(gim.GimHandler):
+    """
+    Handler to store the incoming GIMs in arrays
+    """
+
+    def __init__(self):
+        self.vtec_gims: List[gim.Gim] = []
+
+    def process(self, nequick_gim: nequick.Gim):
+        """
+        Process a GIM file
+        """
+
+        incoming_gim = gim.Gim(nequick_gim.epoch,
+                               nequick_gim.longitudes, nequick_gim.latitudes,
+                               nequick_gim.vtec_values)
+
+        self.vtec_gims.append(incoming_gim)
+
+
 def cli():
     """
     This function allows users to compute the difference between two IONEX files
+    or between an IONEX file and the NeQuick model (with three coefficients),
     and save the result in a new IONEX file.
+
+
+    Example:
+        Compute the difference between two IONEX files:
+        $ python ionex.py file1.ionex file2.ionex output.ionex
+
+        Compute the difference between an IONEX file and the NeQuick model:
+        $ python ionex.py file1.ionex output.ionex --nequick 0.123 0.456 0.789
     """
-    parser = argparse.ArgumentParser(
-        description="Compute the difference between two IONEX files and save the result in a new IONEX file."
-    )
+    parser = argparse.ArgumentParser(description=cli.__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter )
 
     parser.add_argument(
         "lhs",
@@ -284,19 +315,96 @@ def cli():
     )
 
     parser.add_argument(
-        "rhs",
-        type=str,
-        help="Path to the second IONEX file (right-hand side).",
-    )
-
-    parser.add_argument(
         "output",
         type=str,
         help="Path to the output IONEX file where the differences will be saved.",
+    )
+
+    rhs = parser.add_mutually_exclusive_group(required=True)
+
+    rhs.add_argument(
+        "--rhs",
+        type=str,
+        help="Path to the second IONEX file (right-hand side). If not provided, --nequick must be specified.",
+    )
+
+    rhs.add_argument(
+        "--nequick",
+        type=float,
+        nargs=3,
+        metavar=("AZ0", "AZ1", "AZ2"),
+        help="Use the NeQuick model to compare against the 'lhs' IONEX (instead of another IONEX file). "
+        "Specify the three NeQuick coefficients (az0, az1, az2).",
+    )
+
+    parser.add_argument(
+        "--nequick-ionex",
+        type=str,
+        default=None,
+        required=False,
+        metavar='<file>',
+        help="Specify a filename to store the NeQuick model in IONEX format",
     )
 
     args = parser.parse_args()
 
     PGM = "ionex_diff"
 
-    diff(args.lhs, args.rhs, args.output, pgm=PGM)
+    # Validate input arguments
+    if args.rhs is None and args.nequick is None:
+        parser.error("Either a second IONEX file (rhs) or the '--nequick' option must be provided.")
+
+    if args.rhs is not None and args.nequick is not None:
+        parser.error("You cannot specify both a second IONEX file (rhs) and the '--nequick' option.")
+
+    if args.nequick_ionex is not None and args.nequick is None:
+        parser.error("Cannot output the IONEX file with the NeQuick model without the '--nequick' option.")
+
+    # Process the lhs IONEX file
+    gim_handler_lhs = gim.GimHandlerArray()
+    load(args.lhs, gim_handler=gim_handler_lhs)
+
+    # Add comments to the output file
+    comment_lines = [
+        "This IONEX file contains the differences of VTEC values,",
+        "computed as vtec_left - vtec_right, where:",
+        f"- vtec_left: {os.path.basename(args.lhs)}"
+    ]
+
+    # Process the rhs input (either an IONEX file or NeQuick coefficients)
+    gim_handler_rhs = None
+    if args.rhs:
+        gim_handler_rhs = gim.GimHandlerArray()
+        # Load the second IONEX file
+        load(args.rhs, gim_handler=gim_handler_rhs)
+        comment_lines += [f"- vtec_right: {os.path.basename(args.rhs)}"]
+
+    else:
+        gim_handler_rhs = NeQuickGimHandlerArray()
+        # Generate GIMs using NeQuick coefficients
+        coeffs = args.nequick
+        nequick_desc = ["NeQuick model", f"   az0={coeffs[0]}", f"   az1={coeffs[1]}", f"   az2={coeffs[2]}"]
+        comment_lines += [f"- vtec_right: {nequick_desc[0]}"] + nequick_desc[1:]
+
+        for ionex_gim in gim_handler_lhs.vtec_gims:
+
+            nequick.to_gim(nequick.Coefficients(*coeffs),
+                           ionex_gim.epoch,
+                           latitudes = ionex_gim.latitudes,
+                           longitudes = ionex_gim.longitudes,
+                           gim_handler= gim_handler_rhs)
+
+    # Compute the difference
+    gim_diffs = gim.subtract_gims(gim_handler_lhs.vtec_gims, gim_handler_rhs.vtec_gims)
+
+
+    # Write the result to the output file
+    write(args.output, gim_diffs, gim.GimType.TEC, pgm=PGM, comment_lines=comment_lines)
+
+    if args.nequick_ionex is not None:
+        comment_lines = [
+            "TEC values generated with the " + nequick_desc[0]
+        ] + nequick_desc[1:]
+
+        write(args.nequick_ionex, gim_handler_lhs.vtec_gims, gim.GimType.TEC, pgm=PGM,
+              comment_lines=comment_lines )
