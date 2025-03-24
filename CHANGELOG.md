@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.7.0 (2025-03-24)
+
+### Features
+
+- **ionex_diff**: Add option to compute diffs relative to NeQuick
+  ([`9eec31f`](https://github.com/mgfernan/pygnss/commit/9eec31f85ccc8fcf76e8ad5326876c8d4833a962))
+
+
 ## v0.6.0 (2025-03-23)
 
 ### Features
