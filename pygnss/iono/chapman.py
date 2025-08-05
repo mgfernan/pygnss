@@ -10,7 +10,7 @@ import numpy as np
 
 HEIGHTS_KM = np.arange(60, 1000, 10)
 
-def compute_chapman_profile(hmF2_km: float, NmF2: float, H_km: float, zenith_angle_deg: float, heights_km: float | np.ndarray =HEIGHTS_KM) -> float | np.ndarray:
+def compute_profile(hmF2_km: float, NmF2: float, H_km: float, zenith_angle_deg: float, heights_km: float | np.ndarray =HEIGHTS_KM) -> float | np.ndarray:
     """
     Compute the Chapman ionospheric model.
 
