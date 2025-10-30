@@ -963,12 +963,12 @@ def haversine(lon1_deg, lat1_deg, lon2_deg, lat2_deg, r=6371):
     Extracted from http://stackoverflow.com/questions/4913349
 
     >>> haversine(0, 0, 0, 0)
-    np.float64(0.0)
+    0.0
 
     Example extracted from https://rosettacode.org/wiki/Haversine_formula
 
     >>> haversine(-86.67, 36.12, -118.40, 33.94, r=6371.8)
-    np.float64(2886.8068907353736)
+    2886.8068907353736
 
     Arrays can also be used (for a vectorized computation)
     >>> haversine([2, 2, 2], [89, 40, 0], [3, 3, 3], [89, 40, 0])
@@ -982,6 +982,10 @@ def haversine(lon1_deg, lat1_deg, lon2_deg, lat2_deg, r=6371):
     dlat = lat2 - lat1
     a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
     c = 2 * np.arcsin(np.sqrt(a))
+
+    # Return a float if input dimension is one (to avoid test failures due to numpy float64)
+    if len(lon1_deg) == 1:
+        c = float(c)
 
     return c * r
 
