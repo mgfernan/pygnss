@@ -963,21 +963,25 @@ def haversine(lon1_deg, lat1_deg, lon2_deg, lat2_deg, r=6371):
     Extracted from http://stackoverflow.com/questions/4913349
 
     >>> haversine(0, 0, 0, 0)
-    0.0
+    np.float64(0.0)
 
     Example extracted from https://rosettacode.org/wiki/Haversine_formula
 
     >>> haversine(-86.67, 36.12, -118.40, 33.94, r=6371.8)
-    2886.8068907353736
+    np.float64(2886.8068907353736)
+
+    Arrays can also be used (for a vectorized computation)
+    >>> haversine([2, 2, 2], [89, 40, 0], [3, 3, 3], [89, 40, 0])
+    array([  1.94059443,  85.17980895, 111.19492664])
     """
     # convert decimal degrees to radians
-    lon1, lat1, lon2, lat2 = map(math.radians, [lon1_deg, lat1_deg, lon2_deg, lat2_deg])
+    lon1, lat1, lon2, lat2 = map(np.radians, [lon1_deg, lat1_deg, lon2_deg, lat2_deg])
 
     # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
-    c = 2 * math.asin(math.sqrt(a))
+    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
+    c = 2 * np.arcsin(np.sqrt(a))
 
     return c * r
 
