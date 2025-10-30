@@ -119,3 +119,18 @@ def test_ionex_diff_inputs(cmd_args: List[str], return_code: int):
         cmd = cmd_args + [fh.name]  # Append the output file to the command
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         assert p.returncode == return_code
+
+
+def test_ionex_write():
+    """
+    Test the ionex write function.
+    """
+    with tempfile.NamedTemporaryFile(mode="wt") as fh:
+
+        gim_handler = gim.GimHandlerArray()
+        ionex.load(SAMPLE_IONEX, gim_handler=gim_handler)
+        gims = gim_handler.vtec_gims
+
+        ionex.write(fh.name, gims, gim.GimType.TEC)
+
+        assert os.path.getsize(fh.name) > 0, "File is empty"
