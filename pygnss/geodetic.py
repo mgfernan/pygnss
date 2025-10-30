@@ -983,8 +983,8 @@ def haversine(lon1_deg, lat1_deg, lon2_deg, lat2_deg, r=6371):
     a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
     c = 2 * np.arcsin(np.sqrt(a))
 
-    # Return a float if input dimension is one (to avoid test failures due to numpy float64)
-    if len(lon1_deg) == 1:
+    # Return a float if input is a single float (to avoid test failures due to numpy float64)
+    if np.ndim(lon1_deg) == 0:
         c = float(c)
 
     return c * r
