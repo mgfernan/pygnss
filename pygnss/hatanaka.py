@@ -2,7 +2,26 @@ import gzip
 import pandas as pd
 import tempfile
 
-from pygnss._c_ext import _read_crx
+try:
+    from pygnss._c_ext import _read_crx  # compiled C extension for fast CRX parsing
+except Exception as exc:  # pragma: no cover - environment-specific
+    _import_err = exc
+
+    def _read_crx(*args, **kwargs):
+        """Fallback stub when the compiled extension is missing.
+
+        The real implementation lives in the compiled extension module
+        ``pygnss._c_ext``. If that extension isn't available (for example on
+        CI or when the package wasn't built/installed), attempting to read a
+        CRX file will raise a clear ImportError with instructions.
+        """
+        raise ImportError(
+            "pygnss C extension 'pygnss._c_ext' is not available.\n"
+            "To enable Hatanaka (.crx) parsing, build and install the package so\n"
+            "that the compiled extension is present (e.g. running 'pip install .',\n"
+            "or building the wheel in your CI).\n"
+            f"Original import error: {type(_import_err).__name__}: {_import_err}"
+        ) from _import_err
 
 def to_dataframe(filename:str, station:str = "none", strict_lli: bool = True) -> pd.DataFrame:
     """
