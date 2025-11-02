@@ -56,8 +56,9 @@ class RangePositioning2D(Model):
 
         if compute_jacobian is True:
             H = rho / ranges[:, np.newaxis]
-
-        return ranges, H
+        # Return a ModelObs namedtuple for compatibility with the filter
+        # API which expects an object with a ``y_m`` attribute.
+        return ModelObs(ranges, H)
 
     def Phi(self):
         """
