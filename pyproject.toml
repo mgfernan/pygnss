@@ -13,7 +13,7 @@ dependencies = [
     "nequick >= 0.2.0",
     "numpy",
     "pandas >= 2.2",
-    "pyarrow >= 18.0.0"
+    "pyarrow >= 18.0.0",
 ]
 
 [project.optional-dependencies]
@@ -22,7 +22,8 @@ test = [
   "pytest-env >= 1.1.5",
   "pytest-mocha >= 0.4.0",
   "flake8 >= 7.0.0",
-  "pnt_datasets"
+  "pnt-datasets>=0.2.2",
+  "package-name>=0.1",
 ]
 release = [
   "python-semantic-release >= 9.4.0",
@@ -73,3 +74,7 @@ include-dirs = ["pygnss/", "submodules/hatanakalib"]
 
 [tool.setuptools.packages.find]
 include = ["pygnss", "pygnss.*"]
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib"]
+pythonpath = ["."]
