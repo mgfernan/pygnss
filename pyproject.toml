@@ -5,7 +5,7 @@ description = "Package with utilities and tools for GNSS data processing"
 authors = [
   { name = "Miquel Garcia-Fernandez", email = "miquel@mgfernan.com" }
 ]
-license = {text = "MIT"}
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.10"
 
