@@ -43,7 +43,8 @@ jobs:
     - name: Test with pytest
       run: |
         # Run pytest using the venv's interpreter so installed deps are visible
-        .venv/bin/pytest -v
+        export PATH="${{ github.workspace }}/.venv/bin:$PATH"
+        pytest -v
 
 
   tag:
