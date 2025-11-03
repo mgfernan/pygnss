@@ -29,24 +29,16 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        sudo apt update
-        sudo apt install -y build-essential
-        pip install -v .[test]
+        uv sync
+        source .venv/bin/activate
+        uv pip install -e '.[test]'
 
     - name: Lint with flake8
-      run: flake8 pygnss --count --select=E9,F63,F7,F82 --show-source --statistics --ignore F821
-
-    - name: Build wheel
-      run: |
-        pip wheel -v --no-deps .
+      run: uv run flake8 pygnss --count --select=E9,F63,F7,F82 --show-source --statistics --ignore F821
 
     - name: Test with pytest
       run: |
-        python3 -m venv .venv
-        source .venv/bin/activate
-        pip install pygnss-*.whl
-        pytest -v
+        uv run pytest -v
 
 
   tag:
