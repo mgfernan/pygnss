@@ -42,10 +42,10 @@ class RangePositioning2D(Model):
         >>> model = RangePositioning2D(Phi, nodes)
         >>> state_m = np.array([1, 2])
         >>> model.to_observations(state_m)
-        (array([2.23606798, 8.06225775, 9.21954446]), None)
+        ModelObs(y_m=array([2.23606798, 8.06225775, 9.21954446]), H=None)
 
         >>> model.to_observations(state_m, compute_jacobian=True)
-        (array([2.23606798, 8.06225775, 9.21954446]), array([[ 0.4472136 ,  0.89442719],
+        ModelObs(y_m=array([2.23606798, 8.06225775, 9.21954446]), H=array([[ 0.4472136 ,  0.89442719],
                [ 0.12403473, -0.99227788],
                [-0.97618706,  0.21693046]]))
         """
