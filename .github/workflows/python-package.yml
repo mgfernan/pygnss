@@ -27,18 +27,23 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
+    - name: Create and activate venv, install dependencies
       run: |
-        uv sync
+        python -m venv .venv
+        # shellcheck disable=SC1091
         source .venv/bin/activate
-        uv pip install -e '.[test]'
+        python -m pip install --upgrade pip
+        python -m pip install -e '.[test]'
 
     - name: Lint with flake8
-      run: uv run flake8 pygnss --count --select=E9,F63,F7,F82 --show-source --statistics --ignore F821
+      run: |
+        # Use the venv's flake8 (installed as part of the test extras)
+        .venv/bin/flake8 pygnss --count --select=E9,F63,F7,F82 --show-source --statistics --ignore F821
 
     - name: Test with pytest
       run: |
-        uv run pytest -v
+        # Run pytest using the venv's interpreter so installed deps are visible
+        .venv/bin/pytest -v
 
 
   tag:
