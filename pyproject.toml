@@ -75,6 +75,9 @@ include-dirs = ["pygnss/", "submodules/hatanakalib"]
 [tool.setuptools.packages.find]
 include = ["pygnss", "pygnss.*"]
 
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
+
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
 pythonpath = ["."]
