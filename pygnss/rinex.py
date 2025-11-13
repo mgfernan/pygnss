@@ -1638,7 +1638,7 @@ class Nav(object):
         that supports LEO navigation blocks
         """
 
-        epoch_str = datetime.datetime.utcnow().strftime('%Y%m%d %H%M%S UTC ')
+        epoch_str = datetime.datetime.now(datetime.UTC).strftime('%Y%m%d %H%M%S UTC ')
 
         out = "     4.99           NAVIGATION DATA     M                   RINEX VERSION / TYPE\n"
         out = out + f"{pgm.ljust(20)}rokubun             {epoch_str}PGM / RUN BY / DATE\n"
