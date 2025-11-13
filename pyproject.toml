@@ -1,6 +1,6 @@
 [project]
 name = "pygnss"
-version = "1.2.0"
+version = "2.0.0"
 description = "Package with utilities and tools for GNSS data processing"
 authors = [
   { name = "Miquel Garcia-Fernandez", email = "miquel@mgfernan.com" }
