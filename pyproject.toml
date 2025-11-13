@@ -67,10 +67,10 @@ sources = [
     "pygnss/_c_ext/src/helpers.c",
     "pygnss/_c_ext/src/hatanaka.c",
     "pygnss/_c_ext/src/mtable_init.c",
-    "submodules/hatanakalib/hatanaka/src/common.c",
-    "submodules/hatanakalib/hatanaka/src/crx2rnx.c"
+    "hatanaka/src/common.c",
+    "hatanaka/src/crx2rnx.c"
 ]
-include-dirs = ["pygnss/", "submodules/hatanakalib"]
+include-dirs = ["pygnss/", "hatanaka/include/"]
 
 [tool.setuptools.packages.find]
 include = ["pygnss", "pygnss.*"]

@@ -1,8 +1,7 @@
 #include <Python.h>
 #include <datetime.h>
 
-#include "hatanaka/include/crx2rnx.h"
-
+#include "hatanaka/crx2rnx.h"
 
 static char* get_crx_line(void* _args, size_t n_max, char* dst) {
 
