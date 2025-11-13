@@ -4,11 +4,8 @@ import tempfile
 
 from pygnss import hatanaka
 
-# Get the absolute path to the hatanakalib directory
-hatanakalib_path = Path(__file__).parent.parent / 'submodules' / 'hatanakalib'
-
 # Construct the path to the data file
-crz_file = hatanakalib_path / 'tests' / 'data' / 'ACSO00XXX_R_20241310000_05S_01S_MO.crx.gz'
+crz_file = Path(__file__).parent / 'data' / 'ACSO00XXX_R_20241310000_05S_01S_MO.crx.gz'
 
 def test__hatanaka_to_dataframe_crx():
     """Hatanaka :: To DataFrame (CRX) """
