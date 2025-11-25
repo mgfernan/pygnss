@@ -1,6 +1,7 @@
 #include <Python.h>
 
 #include "hatanaka.h"
+#include "klobuchar.h"
 
 static PyMethodDef module_methods[] = {
     { "_read_crx",         (PyCFunction)_read_crx, METH_VARARGS | METH_KEYWORDS,
@@ -30,11 +31,16 @@ PyMODINIT_FUNC PyInit__c_ext(void) {
 //     if (PyType_Ready(HatanakaReaderType) < 0) {
 //         goto end;
 //     }
+    if (PyType_Ready(KlobucharType) < 0)
+        return NULL;
 
     m = PyModule_Create(&module);
     if (m == NULL) {
         goto end;
     }
+
+    Py_INCREF(KlobucharType);
+    PyModule_AddObject(m, "Klobuchar", (PyObject *)KlobucharType);
 
 //     Py_INCREF(HatanakaReaderType);
 //     PyModule_AddObject(m, "HatanakaReader", (PyObject*)HatanakaReaderType);

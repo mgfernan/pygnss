@@ -64,8 +64,10 @@ build-backend = "setuptools.build_meta"
 [[tool.setuptools.ext-modules]]
 name = "pygnss._c_ext"
 sources = [
+    "pygnss/_c_ext/src/constants.c",
     "pygnss/_c_ext/src/helpers.c",
     "pygnss/_c_ext/src/hatanaka.c",
+    "pygnss/_c_ext/src/klobuchar.c",
     "pygnss/_c_ext/src/mtable_init.c",
     "hatanaka/src/common.c",
     "hatanaka/src/crx2rnx.c"
