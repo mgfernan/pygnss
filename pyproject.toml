@@ -29,6 +29,9 @@ release = [
   "python-semantic-release >= 9.4.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/mgfernan/pygnss"
+
 [project.scripts]
 cl = "pygnss.cl:entry_point"
 ionex_diff = "pygnss.ionex:cli"
