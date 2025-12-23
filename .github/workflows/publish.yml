@@ -8,22 +8,17 @@ on:
 
 
 jobs:
-  publish:
-
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
     # Trigger only if the commit starts with a number (i.e. semantic release version number)
     if: github.event_name == 'push' && github.ref == 'refs/heads/trunk' && startsWith(github.event.head_commit.author.name, 'semantic-release')
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-    # Specifying a GitHub environment is optional, but strongly encouraged
-    environment: pypi
-    permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
-      id-token: write
+        # Build on multiple platforms to get wheels for all architectures
+        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
 
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -33,7 +28,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: "3.11"
 
       - name: Install cibuildwheel
         run: python -m pip install "cibuildwheel>=2.22.0"
@@ -41,7 +36,32 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
 
-      # Publish content of dist
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+
+  publish:
+    name: Publish to PyPI
+    needs: [build_wheels]
+    runs-on: ubuntu-latest
+    # Specifying a GitHub environment is optional, but strongly encouraged
+    environment: pypi
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+
+    steps:
+      - name: Download all wheels
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: wheelhouse/
+
+      # Publish content of wheelhouse
       - name: PyPi publish
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
