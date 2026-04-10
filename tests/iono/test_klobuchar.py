@@ -19,7 +19,7 @@ def test__klobuchar_compute_slant_delay():
 
     test_file = Path(__file__).parent / '..' / 'data' / 'compute_klobuchar_tests.txt'
 
-    df = pd.read_csv(test_file, header=None, delim_whitespace=True, names=[
+    df = pd.read_csv(test_file, header=None, sep=r"\s+", names=[
         'tow', 'latitude', 'longitude', 'elevation', 'azimuth',
         'alpha0', 'alpha1', 'alpha2', 'alpha3',
         'beta0', 'beta1', 'beta2', 'beta3',
