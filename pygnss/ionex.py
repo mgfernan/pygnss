@@ -263,11 +263,24 @@ def _parse_ionex_epoch(ionex_line: str) -> datetime.datetime:
     datetime.datetime(2024, 12, 11, 0, 0, 14)
     >>> _parse_ionex_epoch("  2024    12    11     0     0     0                        EPOCH OF CURRENT MAP")
     datetime.datetime(2024, 12, 11, 0, 0)
+    >>> _parse_ionex_epoch("  2024    12    11    24     0     0                        EPOCH OF CURRENT MAP")
+    datetime.datetime(2024, 12, 12, 0, 0)
     """
 
     _HEADER_EPOCH_FORMAT = "  %Y    %m    %d    %H    %M    %S"
 
-    return datetime.datetime.strptime(ionex_line[:36], _HEADER_EPOCH_FORMAT)
+    epoch_str = ionex_line[:36]
+
+    try:
+        return datetime.datetime.strptime(epoch_str, _HEADER_EPOCH_FORMAT)
+    except ValueError:
+        if "24     0     0" in epoch_str:
+            # Handle the special case where the hour is 24, which is not directly supported by strptime
+            patched = epoch_str.replace("24     0     0", " 0     0     0")
+            epoch = datetime.datetime.strptime(patched, _HEADER_EPOCH_FORMAT)
+            return epoch + datetime.timedelta(days=1)
+    
+    raise ValueError(f"Could not parse epoch from IONEX line: {ionex_line}")
 
 
 

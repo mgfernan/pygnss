@@ -1,3 +1,4 @@
+import doctest
 import os
 import subprocess
 import tempfile
@@ -11,6 +12,13 @@ from pygnss.iono import gim
 
 DATA_FOLDER = os.path.join(os.path.dirname(__file__), "./data")
 SAMPLE_IONEX =  os.path.join(DATA_FOLDER, "sample.ionex")
+
+def test_doctest():
+    """Number of failed doctests should be 0"""
+
+    fails, tests = doctest.testmod(ionex)
+    assert tests > 0
+    assert fails == 0
 
 @pytest.mark.parametrize('ionex_file, n_vtec_maps, n_rms_maps', [
     pytest.param('COD0OPSRAP_20250790000_01D_01H_GIM.INX.gz', 25, 25),
