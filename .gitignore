@@ -26,3 +26,6 @@ setup.py
 .jupyter
 .local
 .ipython
+
+# UV project workflow
+uv.lock
