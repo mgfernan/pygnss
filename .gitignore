@@ -12,6 +12,7 @@ dist/
 .eggs
 .vscode
 .idea/
+.npm
 
 poetry.lock
 
