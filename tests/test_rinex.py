@@ -1,6 +1,8 @@
 import datetime
 import doctest
+import importlib
 import os
+import pkgutil
 import subprocess
 from io import StringIO
 import tempfile
@@ -367,6 +369,12 @@ G30  24134387.953    24134384.398    24134383.574    -7369455.104 6  -5729164.21
 def test_doctest():
     """Rinex :: Number of failed doctests should be 0"""
 
-    fails, tests = doctest.testmod(rnx)
-    assert tests > 0
-    assert fails == 0
+    total_fails, total_tests = 0, 0
+    for module_info in pkgutil.iter_modules(rnx.__path__):
+        module = importlib.import_module(f'{rnx.__name__}.{module_info.name}')
+        fails, tests = doctest.testmod(module)
+        total_fails += fails
+        total_tests += tests
+
+    assert total_tests > 0
+    assert total_fails == 0
