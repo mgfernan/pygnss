@@ -18,7 +18,7 @@ def parse_decimal_point(number: str) -> float:
     >>> f'{parse_decimal_point("-11606-4"):.4e}'
     '-1.1606e-05'
     >>> f'{parse_decimal_point("-11606+4"):.4e}'
-    '-1.1606E+03'
+    '-1.1606e+03'
     >>> f'{parse_decimal_point(" 11606-4"):.4e}'
     '1.1606e-05'
     """
