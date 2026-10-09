@@ -51,6 +51,9 @@ class Record(object):
             self.doppler = observable_value.value
         elif observable_type.type == 'S':
             self.snr = observable_value.value
+        elif observable_type.type == 'X':
+            # Receiver-specific observable (e.g. carrier offset of FDMA LEO signals): no record field
+            pass
         else:
             raise TypeError(f'Unrecognise observable type {observable_type.type}')
 
