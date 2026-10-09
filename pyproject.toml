@@ -40,6 +40,7 @@ compute_cdf = "pygnss.stats:cdf_cli"
 rinex_from_file = "pygnss.rinex:rinex_from_file"
 merge_rinex_nav = "pygnss.rinex:merge_nav_cli"
 rinex_to_parquet = "pygnss.rinex:rinex_to_parquet"
+leo_csv_to_rinex = "pygnss.leo.csv_to_rinex:cli"
 
 [tool.semantic_release]
 version_variables = [
