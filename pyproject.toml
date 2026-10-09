@@ -14,6 +14,7 @@ dependencies = [
     "numpy",
     "pandas >= 2.2",
     "pyarrow >= 18.0.0",
+    "sgp4>=2.27",
 ]
 
 [project.optional-dependencies]
@@ -41,6 +42,7 @@ rinex_from_file = "pygnss.rinex:rinex_from_file"
 merge_rinex_nav = "pygnss.rinex:merge_nav_cli"
 rinex_to_parquet = "pygnss.rinex:rinex_to_parquet"
 leo_csv_to_rinex = "pygnss.leo.csv_to_rinex:cli"
+tle_to_sp3 = "pygnss.orbit.tle_to_sp3:cli"
 
 [tool.semantic_release]
 version_variables = [

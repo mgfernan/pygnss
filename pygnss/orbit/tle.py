@@ -67,6 +67,8 @@ class TLE(object):
 
         self.label = label
         self.id = int(id_1)
+        self.line1 = line1
+        self.line2 = line2
 
         line = line1
 
