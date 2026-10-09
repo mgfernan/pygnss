@@ -2,14 +2,16 @@ import datetime
 import math
 import os
 import pandas as pd
-from typing import List, Tuple
+from typing import List
 
 from .. import time
 from ..constants import SPEED_OF_LIGHT
-from ..gnss.types import ConstellationId, TrackingChannel, Satellite
+from ..gnss.types import ConstellationId, TrackingChannel
 
-from .defs import RINEX_BAND_MAP, RINEX_LINE_SYS_OBS_TYPES
-from .observables import EpochFlag, ObservableType, ObservableValue, Record
+from .defs import RINEX_BAND_MAP
+from .header import parse_header
+from .line_parsers import parse_obs_line
+from .observables import EpochFlag, ObservableType, Record
 
 
 def get_channels(observables: List[ObservableType]) -> List[TrackingChannel]:
@@ -39,38 +41,6 @@ def get_channels(observables: List[ObservableType]) -> List[TrackingChannel]:
     return res
 
 
-def get_obs_mapping(lines: List[str]) -> dict:
-    """
-    Get the observable mappings for a constellation
-
-    >>> line = "G    9 C1C L1C C1W C2W L2W C2L L2L C5Q L5Q                  SYS / # / OBS TYPES"
-    >>> get_obs_mapping([line])
-    {'G': [C1C, L1C, C1W, C2W, L2W, C2L, L2L, C5Q, L5Q]}
-
-    >>> lines = ["G   20 C1C L1C D1C S1C C1W L1W D1W S1W C2W L2W D2W S2W C2L  SYS / # / OBS TYPES", \
-                 "       L2L D2L S2L C5Q L5Q D5Q S5Q                          SYS / # / OBS TYPES"]
-    >>> get_obs_mapping(lines)
-    {'G': [C1C, L1C, D1C, S1C, C1W, L1W, D1W, S1W, C2W, L2W, D2W, S2W, C2L, L2L, D2L, S2L, C5Q, L5Q, D5Q, S5Q]}
-    """
-
-    constellation = None
-    values = None
-
-    for line in lines:
-
-        constellation_letter = line[0] if line[0] != ' ' else None
-        values_partial = [ObservableType.from_string(s) for s in line[6:60].split()]
-
-        if constellation_letter:
-            constellation = constellation_letter
-            values = values_partial
-
-        else:
-            values.extend(values_partial)
-
-    return {constellation: values}
-
-
 def to_dataframe(rinex_file: str, station_name=None) -> pd.DataFrame:
     """
     Convert a RINEX file to a pandas DataFrame structure
@@ -80,27 +50,12 @@ def to_dataframe(rinex_file: str, station_name=None) -> pd.DataFrame:
 
     with open(rinex_file, 'r', encoding='utf-8') as file:
 
-        constellation_observables = {}
         records = []
 
-        # Header parsing
-        for line in file:
-
-            if "END OF HEADER" in line:
-                break
-
-            if RINEX_LINE_SYS_OBS_TYPES in line:
-                lines = [line]
-
-                n_observables = int(line[1:6])
-                n_extra_lines = (n_observables - 1) // 13 if n_observables > 13 else 0
-                for _ in range(n_extra_lines):
-                    lines.append(next(file))
-
-                constellation_observables.update(get_obs_mapping(lines))
-
-            if "MARKER NAME" in line:
-                station_name_inferred = line[0:4]
+        header = parse_header(file)
+        constellation_observables = header.obs_types
+        if header.marker_name:
+            station_name_inferred = header.marker_name[0:4]
 
         # Body parsing
         for line in file:
@@ -123,7 +78,7 @@ def to_dataframe(rinex_file: str, station_name=None) -> pd.DataFrame:
 
                     n_obs = len(observable_types)
                     channels = get_channels(observable_types)
-                    satellite, observable_values = _parse_obs_line(line, n_obs)
+                    satellite, observable_values = parse_obs_line(line, n_obs)
 
                     epoch_records = [
                         Record(epoch, satellite, channel, math.nan, math.nan, math.nan, math.nan, 0)
@@ -191,39 +146,6 @@ class Obs:
         grouped_df['cmc_detrended'] = cmc - trend
 
         return grouped_df
-
-
-def _parse_obs_line(line: str, n_obs: int) -> Tuple[Satellite, List[ObservableValue]]:
-    """
-
-    >>> line = "C05  40058862.469 6 208597044.05206  40058858.572 7 161300483.44407  40058861.947 7 169502210.29507"
-    >>> _parse_obs_line(line, 6)
-    (C05, [ObservableValue(value=40058862.469, lli=0, snr=6), \
-ObservableValue(value=208597044.052, lli=0, snr=6), \
-ObservableValue(value=40058858.572, lli=0, snr=7), \
-ObservableValue(value=161300483.444, lli=0, snr=7), \
-ObservableValue(value=40058861.947, lli=0, snr=7), \
-ObservableValue(value=169502210.295, lli=0, snr=7)])
-    """
-
-    satellite = Satellite.from_string(line[0:3])
-
-    observable_values = []
-
-    offset = 3
-    for i_obs in range(n_obs):
-        start = offset + i_obs * 16
-        obs_str = line[start:start + 14]
-        lli_str = line[start + 14:start + 14 + 1]
-        snr_str = line[start + 15:start + 15 + 1]
-
-        obs = float(obs_str) if obs_str and obs_str != '              ' and obs_str != '\n' else math.nan
-        lli = int(lli_str) if lli_str and lli_str != ' ' and lli_str != '\n' else 0
-        snr = int(snr_str) if snr_str and snr_str != ' ' and snr_str != '\n' else 0
-
-        observable_values.append(ObservableValue(obs, lli, snr))
-
-    return satellite, observable_values
 
 
 def _parse_rnx3_epoch(line):

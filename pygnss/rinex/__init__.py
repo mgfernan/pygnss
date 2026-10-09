@@ -47,12 +47,26 @@ from .period import (
     get_quarter_str,
     strftime,
 )
+from .header import (
+    InvalidLeoExtension,
+    InvalidRinexHeader,
+    RinexHeader,
+    UnsupportedLeoExtensionVersion,
+    get_obs_mapping,
+    parse_header,
+    parse_leo_extension_line,
+)
+from .line_parsers import (
+    LeoObsLineParser,
+    MeoObsLineParser,
+    ObsLineParser,
+    get_obs_line_parser,
+    parse_obs_line,
+)
 from .obs import (
     Obs,
-    _parse_obs_line as _parse_obs_line,
     _parse_rnx3_epoch as _parse_rnx3_epoch,
     get_channels,
-    get_obs_mapping,
     to_dataframe,
 )
 from .nav import (
@@ -81,6 +95,18 @@ from .cli import (
 )
 
 __all__ = [
+    "InvalidLeoExtension",
+    "InvalidRinexHeader",
+    "LeoObsLineParser",
+    "MeoObsLineParser",
+    "ObsLineParser",
+    "RinexHeader",
+    "UnsupportedLeoExtensionVersion",
+    "get_obs_line_parser",
+    "get_obs_mapping",
+    "parse_header",
+    "parse_leo_extension_line",
+    "parse_obs_line",
     "ARG_PERIGEE_DEG_STR",
     "A_M_STR",
     "BdsCnv1NavBlock",
@@ -125,7 +151,6 @@ __all__ = [
     "ZeroCodeBiases",
     "compute_greenwich_ascending_node_rad",
     "get_channels",
-    "get_obs_mapping",
     "get_quarter_str",
     "merge_nav",
     "merge_nav_cli",
