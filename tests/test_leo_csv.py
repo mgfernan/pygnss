@@ -24,7 +24,7 @@ def test_header(rinex_file):
     path, _ = rinex_file
     text = open(path).read()
     assert 'A    2 D9C S9C' in text
-    assert 'B    3 D3C S3C X3C' in text
+    assert 'B    3 D3C S3C F3C' in text
     assert 'D    2 D6C S6C' in text
     assert 'GPS' in text
 
@@ -64,3 +64,32 @@ def test_utc_time_system():
     convert(CSV, out, time_system='utc')
     assert 'UTC         TIME OF FIRST OBS' in out.getvalue()
     assert '  2026    10     1     0     0    1.6169900     UTC' in out.getvalue()
+
+
+def test_orbcomm_frequency_slots(rinex_file):
+    path, _ = rinex_file
+    csv, _ = read_leo_csv(CSV)
+    orbcomm = [line for line in open(path) if line.startswith('B41182')]
+    slots = sorted(int(line[44:58].split('.')[0]) for line in orbcomm)
+    expected = sorted(int(round((f - 137.2e6) / 2500)) for f in csv[csv['constellation'] == 'orbcomm']['frequency'])
+    assert slots == expected
+
+
+def test_globalstar_only(tmp_path):
+    path = str(tmp_path / 'globalstar.rnx')
+    with open(path, 'w') as fh:
+        convert(CSV, fh, constellations=['globalstar'])
+
+    text = open(path).read()
+    assert 'A    2 D9C S9C' in text
+    assert 'SYS / # / OBS TYPES' in text and text.count('SYS / # / OBS TYPES') == 1
+
+    csv, _ = read_leo_csv(CSV)
+    csv = csv[csv['constellation'] == 'globalstar']
+    df = to_dataframe(path)
+
+    assert len(df) == len(csv) == 823
+    assert set(df['constellation']) == {'A'}
+    assert set(df['sat']) == {'A37741', 'A38045', 'A39076'}
+    assert np.allclose(np.sort(df['doppler'].to_numpy()), np.sort(csv['doppler'].to_numpy()), atol=1e-3)
+    assert np.allclose(np.sort(df['snr'].to_numpy()), np.sort(csv['snr'].to_numpy()), atol=1e-3)

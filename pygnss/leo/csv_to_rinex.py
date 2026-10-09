@@ -113,8 +113,9 @@ def convert(source, output: IO, marker_name: str = 'LEO', constellations: Option
         constellation = CSV_CONSTELLATIONS[csv_name]
         signal = LEO_SIGNALS[constellation]
         obs_types[constellation.value] = signal.obs_types
-        comments.append(f'{constellation.value}: band {signal.band}, nominal {signal.nominal_frequency_hz / 1e6:.6f} MHz'
-                        + (', X = carrier offset (kHz)' if signal.fdma else ''))
+        comments.append(f'{constellation.value}: band {signal.band}, {signal.nominal_frequency_hz / 1e6:.6f} MHz')
+        if signal.fdma:
+            comments.append(f'{constellation.value}: F = slot of {signal.slot_size_hz / 1e3:g} kHz')
 
         sub = df[df['constellation'] == csv_name]
         if not signal.fdma:
@@ -135,9 +136,12 @@ def convert(source, output: IO, marker_name: str = 'LEO', constellations: Option
     values[:, 1] = df['snr'].to_numpy()
     for csv_name, constellation in CSV_CONSTELLATIONS.items():
         signal = LEO_SIGNALS[constellation]
-        if signal.fdma:
-            mask = (df['constellation'] == csv_name).to_numpy()
-            values[mask, 2] = (df['frequency'].to_numpy()[mask] - signal.nominal_frequency_hz) / 1e3
+        mask = (df['constellation'] == csv_name).to_numpy()
+        if signal.fdma and mask.any():
+            slots = signal.frequency_slot(df['frequency'].to_numpy()[mask])
+            if np.abs(slots - np.round(slots)).max() > 1e-3:
+                logger.warning(f'{csv_name}: some frequencies are not multiples of the {signal.slot_size_hz} Hz slot size')
+            values[mask, 2] = np.round(slots)
 
     df = df.assign(row_idx=np.arange(len(df)))
     # Explicit division as pandas may hold datetimes with a resolution other than ns
