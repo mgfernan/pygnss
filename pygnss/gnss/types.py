@@ -22,6 +22,9 @@ class ConstellationId(Enum):
     ONEWEB: str = 'O'
     SPIRE: str = 'V'
     CENTISPACE: str = 'Z'
+    GLOBALSTAR: str = 'A'
+    IRIDIUM: str = 'D'
+    ORBCOMM: str = 'B'
 
     @staticmethod
     def from_string(constellation_char: str) -> 'ConstellationId':
@@ -35,6 +38,18 @@ class ConstellationId(Enum):
             return ConstellationId(constellation_char)
         except ValueError:
             raise ValueError(f"Invalid constellation character: {constellation_char}")
+
+    def is_leo(self) -> bool:
+        """
+        Whether the constellation is a LEO one (satellite ids with up to 5 digits)
+
+        >>> ConstellationId.STARLINK.is_leo()
+        True
+        >>> ConstellationId.GPS.is_leo()
+        False
+        """
+
+        return self in _LEO_CONSTELLATIONS
 
     def to_char(self):
         """
@@ -66,6 +81,20 @@ class ConstellationId(Enum):
         if isinstance(other, ConstellationId):
             return self.value < other.value
         return NotImplemented
+
+
+_LEO_CONSTELLATIONS = frozenset({
+    ConstellationId.LEO,
+    ConstellationId.XONA,
+    ConstellationId.GEELY,
+    ConstellationId.STARLINK,
+    ConstellationId.ONEWEB,
+    ConstellationId.SPIRE,
+    ConstellationId.CENTISPACE,
+    ConstellationId.GLOBALSTAR,
+    ConstellationId.IRIDIUM,
+    ConstellationId.ORBCOMM,
+})
 
 
 class Band:
@@ -291,6 +320,10 @@ class ChannelCode(Enum):
     c_5Q: str = "5Q"
 
 
+MEO_SATELLITE_ID_DIGITS = 2
+LEO_SATELLITE_ID_DIGITS = 5
+
+
 @dataclass
 class Satellite:
     constellation: ConstellationId
@@ -298,8 +331,29 @@ class Satellite:
 
     @staticmethod
     def from_string(satellite: str) -> 'Satellite':
+        """
+        Build a satellite from its RINEX identifier: constellation letter followed
+        by the satellite number (2 digits for MEO GNSS, 5 digits for LEO)
+
+        >>> Satellite.from_string('G07')
+        G07
+        >>> Satellite.from_string('G 7')
+        G07
+        >>> Satellite.from_string('X02434')
+        X02434
+        >>> Satellite.from_string('X02434').prn
+        2434
+        >>> Satellite.from_string('G')
+        Traceback (most recent call last):
+        ...
+        ValueError: Invalid satellite identifier [ G ]
+        """
+
         constellation = ConstellationId.from_string(satellite[0])
-        prn = int(satellite[1:3])
+        try:
+            prn = int(satellite[1:].strip())
+        except ValueError:
+            raise ValueError(f"Invalid satellite identifier [ {satellite} ]")
         return Satellite(constellation, prn)
 
     def __lt__(self, other: 'Satellite') -> bool:
@@ -312,7 +366,15 @@ class Satellite:
         return hash(self.constellation) + self.prn
 
     def __repr__(self) -> str:
-        return f"{self.constellation.value:1s}{self.prn:02d}"
+        """
+        >>> Satellite(ConstellationId.GPS, 3)
+        G03
+        >>> Satellite(ConstellationId.STARLINK, 2434)
+        X02434
+        """
+
+        width = LEO_SATELLITE_ID_DIGITS if self.constellation.is_leo() else MEO_SATELLITE_ID_DIGITS
+        return f"{self.constellation.value:1s}{self.prn:0{width}d}"
 
 
 @dataclass

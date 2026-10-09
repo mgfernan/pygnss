@@ -27,6 +27,12 @@ class EphType(enum.Enum):
     SPIRE = f'{ConstellationId.SPIRE.value}'
     STARLINK = f'{ConstellationId.STARLINK.value}'
     ONEWEB = f'{ConstellationId.ONEWEB.value}'
+    XONA = f'{ConstellationId.XONA.value}'
+    GEELY = f'{ConstellationId.GEELY.value}'
+    CENTISPACE = f'{ConstellationId.CENTISPACE.value}'
+    GLOBALSTAR = f'{ConstellationId.GLOBALSTAR.value}'
+    IRIDIUM = f'{ConstellationId.IRIDIUM.value}'
+    ORBCOMM = f'{ConstellationId.ORBCOMM.value}'
 
     @staticmethod
     def from_string(value: str) -> 'EphType':
@@ -56,15 +62,34 @@ class RinexSatIdProvider(ABC):
         return norad_id
 
 
+class LeoRNXId(RinexSatIdProvider):
+    """Satellite id provider for any LEO constellation of the RINEX-LEO extension"""
+
+    def __init__(self, constellation: ConstellationId):
+        self._constellation = constellation
+
+    def get_constellation_letter(self) -> str:
+        return self._constellation.value
+
+
 class RinexSatIdFactory:
     @staticmethod
     def create(constellation: ConstellationId) -> RinexSatIdProvider:
+        """
+        >>> RinexSatIdFactory.create(ConstellationId.IRIDIUM).get_constellation_letter()
+        'D'
+        >>> RinexSatIdFactory.create(ConstellationId.STARLINK).get_constellation_letter()
+        'X'
+        """
+
         if constellation == ConstellationId.STARLINK:
             return StarlinkRNXId()
         elif constellation == ConstellationId.SPIRE:
             return SpireRNXId()
         elif constellation == ConstellationId.ONEWEB:
             return OneWebRNXId()
+        elif constellation.is_leo():
+            return LeoRNXId(constellation)
         else:
             raise ValueError("Invalid constellation")
 

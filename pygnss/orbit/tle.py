@@ -182,5 +182,11 @@ def get_constellation_from_label(label: str) -> ConstellationId:
         out = ConstellationId.SPIRE
     elif 'STARLINK' in label:
         out = ConstellationId.STARLINK
+    elif 'GLOBALSTAR' in label:
+        out = ConstellationId.GLOBALSTAR
+    elif 'IRIDIUM' in label:
+        out = ConstellationId.IRIDIUM
+    elif 'ORBCOMM' in label:
+        out = ConstellationId.ORBCOMM
 
     return out
