@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import datetime
 import enum
+import math
 from typing import List
 
 from ..gnss.types import TrackingChannel, Satellite
@@ -40,6 +41,7 @@ class Record(object):
     doppler: float
     snr: float
     slip: int
+    freq_slot: float = math.nan
 
     def set_value(self, observable_type: ObservableType, observable_value: ObservableValue) -> None:
 
@@ -52,8 +54,8 @@ class Record(object):
         elif observable_type.type == 'S':
             self.snr = observable_value.value
         elif observable_type.type == 'F':
-            # Receiver-specific observable (e.g. frequency slot of FDMA LEO signals): no record field
-            pass
+            # Frequency slot of FDMA LEO signals (RINEX-LEO)
+            self.freq_slot = observable_value.value
         else:
             raise TypeError(f'Unrecognise observable type {observable_type.type}')
 
@@ -63,11 +65,11 @@ class Record(object):
     def aslist(self) -> list:
 
         return [self.epoch, self.sat.constellation.value, str(self.sat), str(self.channel),
-                f'{self.sat}{self.channel}', self.range, self.phase, self.doppler, self.snr, self.slip]
+                f'{self.sat}{self.channel}', self.range, self.phase, self.doppler, self.snr, self.slip, self.freq_slot]
 
     @staticmethod
     def get_list_fieldnames() -> List[str]:
-        return ["epoch", "constellation", "sat", "channel", "signal", "range", "phase", "doppler", "snr", "slip"]
+        return ["epoch", "constellation", "sat", "channel", "signal", "range", "phase", "doppler", "snr", "slip", "freq_slot"]
 
 
 class EpochFlag(enum.Enum):

@@ -6,7 +6,10 @@ import pytest
 
 from pygnss.leo.csv_to_rinex import convert, parse_rx_location, read_leo_csv
 from pygnss.leo.norad import SatNameResolver
+import pandas as pd
+
 from pygnss.rinex import to_dataframe
+from pygnss.rinex.cli import to_parquet
 
 CSV = os.path.join(os.path.dirname(__file__), 'data',
                    'globalstar_orbcomm_iridium_01-10-2026_00:00:00_01-10-2026_00:07:59_UTC.csv')
@@ -93,3 +96,28 @@ def test_globalstar_only(tmp_path):
     assert set(df['sat']) == {'A37741', 'A38045', 'A39076'}
     assert np.allclose(np.sort(df['doppler'].to_numpy()), np.sort(csv['doppler'].to_numpy()), atol=1e-3)
     assert np.allclose(np.sort(df['snr'].to_numpy()), np.sort(csv['snr'].to_numpy()), atol=1e-3)
+
+
+def test_rinex_to_parquet_leo(rinex_file, tmp_path):
+    path, _ = rinex_file
+    output = str(tmp_path / 'leo.parquet')
+    to_parquet([path], output_filename=output, station_name='TEST')
+
+    df = pd.read_parquet(output)
+    assert len(df) == 873
+    assert set(df['station']) == {'test'}
+    assert set(df['constellation']) == {'A', 'B', 'D'}
+    assert {'A37741', 'B41182', 'D41921'} <= set(df['sat'])
+
+    csv, _ = read_leo_csv(CSV)
+    orbcomm = df[df['constellation'] == 'B']
+    expected = sorted(int(round((f - 137.2e6) / 2500)) for f in csv[csv['constellation'] == 'orbcomm']['frequency'])
+    assert sorted(orbcomm['freq_slot'].astype(int)) == expected
+    assert df[df['constellation'] != 'B']['freq_slot'].isna().all()
+
+
+def test_freq_slot_absent_without_fdma(tmp_path):
+    path = str(tmp_path / 'globalstar.rnx')
+    with open(path, 'w') as fh:
+        convert(CSV, fh, constellations=['globalstar'])
+    assert 'freq_slot' not in to_dataframe(path).columns

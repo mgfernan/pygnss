@@ -101,6 +101,9 @@ def to_dataframe(rinex_file: str, station_name=None) -> pd.DataFrame:
                     line = next(file)
 
         dataframe = pd.DataFrame([record.aslist() for record in records], columns=Record.get_list_fieldnames())
+        if dataframe['freq_slot'].isna().all():
+            dataframe = dataframe.drop(columns='freq_slot')
+
         station_name_lowercase = str.lower(station_name if station_name is not None else station_name_inferred)
         dataframe['station'] = station_name_lowercase
 
