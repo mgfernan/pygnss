@@ -51,6 +51,8 @@ The package declares several console scripts (see `pyproject.toml`):
 - `compute_cdf` — utility to compute CDF from data (used by examples)
 - `rinex_from_file`, `rinex_to_parquet`, `merge_rinex_nav` — helpers for
   RINEX conversions
+- `leo_csv_to_rinex` — convert a CSV of LEO signals of opportunity (Doppler and
+  SNR of Globalstar, Iridium and Orbcomm) into a RINEX-LEO observation file
 
 After installing the package into a venv these commands are available on
 `$PATH` (from `.venv/bin`). Tests rely on the entry points being discoverable
@@ -82,6 +84,27 @@ handler = gim.GimHandlerArray()
 ionex.load('sample.ionex', gim_handler=handler)
 print(len(handler.vtec_gims))
 ```
+
+1. LEO signals of opportunity: CSV -> RINEX-LEO -> pandas
+
+```bash
+leo_csv_to_rinex measurements.csv -o measurements.rnx --marker-name MYST
+# Optional: --constellations globalstar iridium orbcomm, --time-system utc,
+# --norad-map names.json (satellite name -> NORAD id), --online (CelesTrak lookup)
+rinex_to_parquet measurements.rnx -o measurements.parquet
+```
+
+```python
+from pygnss import rinex
+
+df = rinex.to_dataframe('measurements.rnx')  # Orbcomm rows include `freq_slot`
+```
+
+The format is described in the
+[RINEX-LEO proposal](https://github.com/mgfernan/rinex_leo). Satellite names are
+mapped to NORAD ids (a table for the sample satellites is bundled), epochs are
+written in GPS time by default, and for Orbcomm the carrier frequency is stored as
+an integer slot (2.5 kHz) from 137.2 MHz in the `F3C` observable.
 
 ## Running tests locally
 
