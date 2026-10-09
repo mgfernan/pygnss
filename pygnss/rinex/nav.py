@@ -840,6 +840,26 @@ class Nav(object):
         self.blocks = Nav._load(file)
 
     @staticmethod
+    def _get_eph_block_lines(eph_type: EphType, satellite: Satellite) -> int:
+        """
+        Number of lines (excluding the header) of the ephemeris block. Any LEO
+        constellation of the RINEX-LEO extension uses the LEO block layout
+
+        >>> Nav._get_eph_block_lines(EphType.GPS_LNAV, Satellite.from_string('G01'))
+        8
+        >>> Nav._get_eph_block_lines(EphType.GLOBALSTAR, Satellite.from_string('A37741'))
+        8
+        """
+
+        n_lines = Nav.RINEX4_EPH_BLOCK_LINES.get(eph_type)
+        if n_lines is None and satellite.constellation.is_leo():
+            n_lines = Nav.RINEX4_EPH_BLOCK_LINES_LEO
+        if n_lines is None:
+            raise ValueError(f'Unsupported ephemeris type [ {eph_type} ]')
+
+        return n_lines
+
+    @staticmethod
     @process_filename_or_file_handler('r')
     def _load(fh: IO) -> List['Nav']:
         """
@@ -889,10 +909,10 @@ class Nav(object):
 
             fields = line.split()
             sat = fields[2]
-            satellite = Satellite(sat[0], int(sat[1:]))  # satellite from eph
+            satellite = Satellite.from_string(sat)  # satellite from eph
 
             eph_type = _get_eph_type_from_rinex4_nav_block_header(line)
-            n_lines = Nav.RINEX4_EPH_BLOCK_LINES[eph_type]
+            n_lines = Nav._get_eph_block_lines(eph_type, satellite)
 
             lines = [fh.readline().rstrip() for _ in range(n_lines)]
 
@@ -976,16 +996,8 @@ class Nav(object):
     @staticmethod
     def create_navblock(satellite: Satellite, orbit: Kepler, sat_clock: Clock, code_biases: CodeBiases) -> RawNavBlock:
 
-        WRITERS = {
-            ConstellationId.STARLINK: Nav.create_leo_navblock,
-            ConstellationId.SPIRE: Nav.create_leo_navblock,
-            ConstellationId.LEO: Nav.create_leo_navblock,
-            ConstellationId.ONEWEB: Nav.create_leo_navblock
-        }
-
-        writer = WRITERS.get(satellite.constellation, None)
-        if writer:
-            return writer(satellite, orbit, sat_clock, code_biases)
+        if satellite.constellation.is_leo():
+            return Nav.create_leo_navblock(satellite, orbit, sat_clock, code_biases)
 
     @staticmethod
     def create_leo_navblock(satellite: Satellite, orbit: Kepler, sat_clock: Clock, biases: CodeBiases) -> RawNavBlock:
