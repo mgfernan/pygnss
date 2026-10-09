@@ -1,3 +1,4 @@
+import io
 import os
 import tempfile
 
@@ -122,3 +123,52 @@ def test_leo_constellation_table(letter, name):
 
     sat, _ = parse_obs_line(f'{letter}00123    732793.036', 1)
     assert (sat.constellation, sat.prn) == (constellation, 123)
+
+
+NAV_HEADER = """     4.01           NAVIGATION DATA     M                   RINEX VERSION / TYPE
+RINEX-LEO 1.00                                              RINEX-LEO EXTENSION
+                                                            END OF HEADER
+"""
+
+NAV_BLOCK = """> EPH {sat}
+    2023 11 02 11 10 24 4.887547846484e-05 4.303787327448e-12 0.000000000000e+00
+     0.000000000000e+00 0.000000000000e+00 1.989675347274e-09 4.642884733583e+00
+     0.000000000000e+00 1.811000000000e-04 0.000000000000e+00 2.835776281159e+03
+     3.858240000000e+05 0.000000000000e+00 5.882354736496e+00 0.000000000000e+00
+     9.288031413876e-01 0.000000000000e+00 1.642393223370e+00 0.000000000000e+00
+     0.000000000000e+00 0.000000000000e+00 2.286000000000e+03 0.000000000000e+00
+     0.000000000000e+00 0.000000000000e+00 1.027763024283e-09 0.000000000000e+00
+    -9.724269021370e-10 0.000000000000e+00 0.000000000000e+00 0.000000000000e+00
+"""
+
+
+@pytest.mark.parametrize('letter', list('ZYLADOBVXP'))
+def test_nav_loads_every_leo_constellation(letter):
+    from pygnss.rinex import Nav
+
+    sat = f'{letter}02434'
+    nav = Nav(io.StringIO(NAV_HEADER + NAV_BLOCK.format(sat=sat) + NAV_BLOCK.format(sat='X00001')))
+
+    assert [str(b.satellite) for b in nav.blocks] == [sat, 'X00001']
+    assert all(len(b.lines) == 9 for b in nav.blocks)
+
+
+def test_obs_mixed_meo_and_leo_epoch(tmp_path):
+    from pygnss.rinex import to_dataframe
+
+    content = """     4.01           OBSERVATION DATA    M                   RINEX VERSION / TYPE
+RINEX-LEO 1.00                                              RINEX-LEO EXTENSION
+TEST                                                        MARKER NAME
+G    2 C1C L1C                                              SYS / # / OBS TYPES
+Z    2 C1C D1C                                              SYS / # / OBS TYPES
+                                                            END OF HEADER
+> 2022 12 20 12  1  4.6030000  0  2
+G23  24718012.436   129894024.173
+Z43012    732793.036      732794.384
+"""
+    path = tmp_path / 'mixed.rnx'
+    path.write_text(content)
+
+    df = to_dataframe(str(path))
+    assert sorted(df['sat']) == ['G23', 'Z43012']
+    assert df[df['sat'] == 'Z43012'].iloc[0]['doppler'] == 732794.384
