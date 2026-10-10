@@ -119,3 +119,16 @@ def test_cli_sat_id(tmp_path):
         cli([str(tle_file), '-o', str(out), '--sat-id', '99999=L05'])
     with pytest.raises(SystemExit):
         cli([str(tle_file), '-o', str(out), '--sat-id', '40044=bad'])
+
+
+def test_explicit_epochs():
+    epochs = [datetime.datetime(2024, 2, 17, 13, 0, 19), datetime.datetime(2024, 2, 17, 13, 1, 41),
+              datetime.datetime(2024, 2, 17, 13, 7, 3)]
+    out = build_sp3(_sample(1), epochs=epochs)
+    lines = out.splitlines()
+    assert lines[0].startswith('#dP2024  2 17 13  0 19.00000000       3')
+    assert [ln for ln in lines if ln.startswith('*')][1] == '*  2024  2 17 13  1 41.00000000'
+    assert sum(ln.startswith('PL01') for ln in lines) == 3
+
+    with pytest.raises(ValueError):
+        build_sp3(_sample(1))

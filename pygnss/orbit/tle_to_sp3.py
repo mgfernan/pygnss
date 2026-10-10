@@ -188,19 +188,22 @@ def _comment_lines(sat_map: Dict[str, int], names: Dict[str, str], extra: Sequen
 
 
 def build_sp3(tles: Sequence[TLE],
-              start: datetime.datetime,
-              end: datetime.datetime,
+              start: Optional[datetime.datetime] = None,
+              end: Optional[datetime.datetime] = None,
               interval_s: float = 300.0,
               error_model: Optional[ErrorModel] = None,
               agency: str = 'TLE',
               frame: str = 'IGS20',
               comments: Sequence[str] = (),
-              sat_id_map: Optional[Dict[int, str]] = None) -> str:
+              sat_id_map: Optional[Dict[int, str]] = None,
+              epochs: Optional[Sequence[datetime.datetime]] = None) -> str:
     """
     Build the SP3-d content for the TLE set (at most 85 satellites). Epochs are in GPS time.
     If several TLEs exist for a NORAD id, the closest in time is used at each epoch.
     ``sat_id_map`` optionally assigns SP3 ids (e.g. ``{40044: 'L05'}``) to NORAD ids; the rest are
     numbered automatically.
+    If ``epochs`` (GPS time, sorted) is given, it is used instead of ``start``, ``end`` and ``interval_s``,
+    which allows irregular epochs (e.g. to match the epochs of another SP3 file).
     """
     error_model = error_model or ErrorModel()
     groups = _group_by_norad(tles)
@@ -214,8 +217,17 @@ def build_sp3(tles: Sequence[TLE],
     groups = dict(sorted(groups.items(), key=lambda item: sat_ids[item[0]]))
     sat_ids = {norad: sat_ids[norad] for norad in groups}
 
-    epochs = gtime.epoch_range(start, end, interval_s)
-    epochs = list(epochs)
+    if epochs is not None:
+        epochs = list(epochs)
+        if not epochs:
+            raise ValueError('Empty list of epochs')
+        start = epochs[0]
+        if len(epochs) > 1:
+            interval_s = float(np.median([(b - a).total_seconds() for a, b in zip(epochs[:-1], epochs[1:])]))
+    else:
+        if start is None or end is None:
+            raise ValueError('Either epochs or start and end must be provided')
+        epochs = list(gtime.epoch_range(start, end, interval_s))
 
     body = []
     max_sigma = {sat: 0.0 for sat in sat_ids.values()}
