@@ -33,7 +33,7 @@ def test_build_sp3():
     lines = out.splitlines()
 
     assert lines[0].startswith('#dP2024  2 17 13  0 18.00000000')
-    assert lines[2].startswith('+    2  L01L02')
+    assert lines[2].startswith('+    2   L01L02')
     assert any(ln == '/* NORAD L01=25544 L02=25545' for ln in lines)
     assert lines[-1] == 'EOF'
     assert sum(ln.startswith('*') for ln in lines) == 7
@@ -70,7 +70,7 @@ def test_cli_single_file_with_many_tles(tmp_path):
          '--interval', '900'])
 
     lines = out.read_text().splitlines()
-    assert lines[2].startswith('+    1  L01')
+    assert lines[2].startswith('+    1   L01')
     assert '/* NORAD L01=40044' in lines
     assert sum(ln.startswith('PL01') for ln in lines) == 97
     assert lines[-1] == 'EOF'
@@ -85,6 +85,37 @@ def test_multiple_platforms_with_several_tles_each():
     tles.append(tles[0])
     out = build_sp3(tles, datetime.datetime(2024, 2, 17, 13), datetime.datetime(2024, 2, 17, 14), 1800.0)
     lines = out.splitlines()
-    assert lines[2].startswith('+    2  L01L02')
+    assert lines[2].startswith('+    2   L01L02')
     assert sum(ln.startswith('PL01') for ln in lines) == 3
     assert sum(ln.startswith('PL02') for ln in lines) == 3
+
+
+def test_sat_id_assignment():
+    start = datetime.datetime(2024, 2, 17, 13)
+    out = build_sp3(_sample(3), start, start, 300.0, sat_id_map={25545: 'L01', 25544: 'L42'})
+    lines = out.splitlines()
+    assert lines[2].startswith('+    3   L01L02L42')
+    assert '/* NORAD L01=25545 L02=25546 L42=25544' in lines
+
+
+def test_sat_id_assignment_duplicate():
+    start = datetime.datetime(2024, 2, 17, 13)
+    with pytest.raises(ValueError):
+        build_sp3(_sample(2), start, start, 300.0, sat_id_map={25544: 'L07', 25545: 'L07'})
+
+
+def test_cli_sat_id(tmp_path):
+    from pygnss.orbit.tle_to_sp3 import cli
+
+    tle_file = pathlib.Path(__file__).parent.parent / 'data' / 'spire_lemur1_multi_tle.txt'
+    out = tmp_path / 'out.sp3'
+    cli([str(tle_file), '-o', str(out), '--start', '2026-10-05T12:00:00', '--end', '2026-10-05T13:00:00',
+         '--sat-id', '40044=L05'])
+    lines = out.read_text().splitlines()
+    assert '/* NORAD L05=40044' in lines
+    assert any(ln.startswith('PL05') for ln in lines)
+
+    with pytest.raises(SystemExit):
+        cli([str(tle_file), '-o', str(out), '--sat-id', '99999=L05'])
+    with pytest.raises(SystemExit):
+        cli([str(tle_file), '-o', str(out), '--sat-id', '40044=bad'])

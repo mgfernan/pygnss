@@ -123,6 +123,48 @@ def _group_by_norad(tles: Sequence[TLE]) -> Dict[int, List[TLE]]:
     return dict(sorted(groups.items()))
 
 
+def parse_sat_id_assignment(text: str) -> tuple:
+    """
+    Parse a NORAD=SATID assignment (e.g. 40044=L05) into (40044, 'L05')
+
+    >>> parse_sat_id_assignment('40044=L05')
+    (40044, 'L05')
+    >>> parse_sat_id_assignment('40044=l5')
+    (40044, 'L05')
+    """
+    norad, sep, sat = text.partition('=')
+    sat = sat.strip().upper()
+    if not sep or not norad.strip().isdigit():
+        raise ValueError(f"Invalid sat id assignment '{text}', expected NORAD=SATID (e.g. 40044=L05)")
+    if len(sat) == 2 and sat[0].isalpha() and sat[1].isdigit():
+        sat = f'{sat[0]}0{sat[1]}'
+    if not (len(sat) == 3 and sat[0].isalpha() and sat[1:].isdigit() and int(sat[1:]) > 0):
+        raise ValueError(f"Invalid SP3 satellite id '{sat}' in '{text}', expected a letter and two digits (e.g. L05)")
+    return int(norad), sat
+
+
+def _assign_sat_ids(norads: Sequence[int], assigned: Dict[int, str]) -> Dict[int, str]:
+    """
+    Use the requested ids for the given NORAD ids and automatically number the rest
+    (Lnn, skipping ids already in use)
+    """
+    sat_ids = {n: assigned[n] for n in norads if n in assigned}
+
+    duplicated = [s for s in set(sat_ids.values()) if list(sat_ids.values()).count(s) > 1]
+    if duplicated:
+        raise ValueError(f'SP3 satellite ids assigned to more than one NORAD id: {sorted(duplicated)}')
+
+    used = set(sat_ids.values())
+    free = (f'{SP3_CONSTELLATION}{i:02d}' for i in range(1, 100))
+    for n in norads:
+        if n not in sat_ids:
+            sat = next(f for f in free if f not in used)
+            sat_ids[n] = sat
+            used.add(sat)
+
+    return sat_ids
+
+
 def _comment_lines(sat_map: Dict[str, int], names: Dict[str, str], extra: Sequence[str]) -> List[str]:
     lines = ['TLE propagated with SGP4, TEME rotated to ECEF with GMST (polar motion neglected)',
              f'Position std (P records) is an empirical TLE error model, in mm as {POS_STD_BASE}**n']
@@ -152,10 +194,13 @@ def build_sp3(tles: Sequence[TLE],
               error_model: Optional[ErrorModel] = None,
               agency: str = 'TLE',
               frame: str = 'IGS20',
-              comments: Sequence[str] = ()) -> str:
+              comments: Sequence[str] = (),
+              sat_id_map: Optional[Dict[int, str]] = None) -> str:
     """
     Build the SP3-d content for the TLE set (at most 85 satellites). Epochs are in GPS time.
     If several TLEs exist for a NORAD id, the closest in time is used at each epoch.
+    ``sat_id_map`` optionally assigns SP3 ids (e.g. ``{40044: 'L05'}``) to NORAD ids; the rest are
+    numbered automatically.
     """
     error_model = error_model or ErrorModel()
     groups = _group_by_norad(tles)
@@ -165,7 +210,9 @@ def build_sp3(tles: Sequence[TLE],
     if len(groups) > MAX_SATS_PER_FILE:
         raise ValueError(f'SP3 files support at most {MAX_SATS_PER_FILE} satellites, got {len(groups)}')
 
-    sat_ids = {norad: f'{SP3_CONSTELLATION}{i:02d}' for i, norad in enumerate(groups, start=1)}
+    sat_ids = _assign_sat_ids(list(groups), sat_id_map or {})
+    groups = dict(sorted(groups.items(), key=lambda item: sat_ids[item[0]]))
+    sat_ids = {norad: sat_ids[norad] for norad in groups}
 
     epochs = gtime.epoch_range(start, end, interval_s)
     epochs = list(epochs)
@@ -204,7 +251,7 @@ def build_sp3(tles: Sequence[TLE],
     n_lines = 5
     for i in range(n_lines):
         chunk = ids[17 * i:17 * (i + 1)]
-        prefix = f'+  {len(ids):3d}  ' if i == 0 else '+        '
+        prefix = f'+  {len(ids):3d}   ' if i == 0 else '+        '
         header.append(prefix + ''.join(chunk).ljust(51))
     for i in range(n_lines):
         chunk = accuracies[17 * i:17 * (i + 1)]
@@ -263,6 +310,8 @@ def cli(argv: Optional[Sequence[str]] = None) -> None:
     parser.add_argument('--interval', type=float, default=300.0, help='Epoch interval in seconds (default: 300)')
     parser.add_argument('--agency', default='TLE', help='4-character agency code')
     parser.add_argument('--frame', default='IGS20', help='5-character coordinate system label')
+    parser.add_argument('--sat-id', action='append', default=[], metavar='NORAD=SATID',
+                        help='Assign an SP3 satellite id to a NORAD id, e.g. 40044=L05 (repeatable)')
     parser.add_argument('--along-km', type=float, default=1.0, help='Along-track error at TLE epoch [km]')
     parser.add_argument('--along-km-per-day', type=float, default=2.0, help='Along-track error growth [km/day]')
     args = parser.parse_args(argv)
@@ -282,9 +331,18 @@ def cli(argv: Optional[Sequence[str]] = None) -> None:
         start = midnight + datetime.timedelta(seconds=elapsed - elapsed % args.interval)
     end = args.end or start + datetime.timedelta(days=1)
 
+    try:
+        sat_id_map = dict(parse_sat_id_assignment(a) for a in args.sat_id)
+    except ValueError as e:
+        parser.error(str(e))
+    missing = set(sat_id_map) - {t.id for t in tles}
+    if missing:
+        parser.error(f'NORAD ids in --sat-id not found in the TLEs: {sorted(missing)}')
+
     model = ErrorModel(along_km=args.along_km, along_km_per_day=args.along_km_per_day)
     for path in write_sp3_files(tles, args.output, start=start, end=end, interval_s=args.interval,
-                                error_model=model, agency=args.agency[:4], frame=args.frame[:5]):
+                                error_model=model, agency=args.agency[:4], frame=args.frame[:5],
+                                sat_id_map=sat_id_map):
         print(path)
 
 
