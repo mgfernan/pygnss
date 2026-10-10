@@ -165,8 +165,10 @@ def read_celestrak(tle_source: Union[str, IO]) -> List[TLE]:
 
 def _read_celestrak_from_stream(file_handle: IO[str], tles: List[TLE]) -> None:
 
+    non_empty = (line for line in file_handle if line.strip())
+
     while True:
-        lines = [next(file_handle, None) for _ in range(3)]
+        lines = [next(non_empty, None) for _ in range(3)]
         if any(line is None for line in lines):
             break
 

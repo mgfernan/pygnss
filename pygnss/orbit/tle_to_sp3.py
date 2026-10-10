@@ -113,7 +113,12 @@ def _select_tle(tles: Sequence[TLE], epoch_utc: datetime.datetime) -> TLE:
 
 def _group_by_norad(tles: Sequence[TLE]) -> Dict[int, List[TLE]]:
     groups = defaultdict(list)
+    seen = set()
     for tle in tles:
+        key = (tle.line1, tle.line2)
+        if key in seen:
+            continue
+        seen.add(key)
         groups[tle.id].append(tle)
     return dict(sorted(groups.items()))
 
