@@ -53,6 +53,10 @@ The package declares several console scripts (see `pyproject.toml`):
   RINEX conversions
 - `leo_csv_to_rinex` — convert a CSV of LEO signals of opportunity (Doppler and
   SNR of Globalstar, Iridium and Orbcomm) into a RINEX-LEO observation file
+- `sp3` — toolkit to process existing SP3 files: `sp3 compare A.sp3 B.sp3`
+  (position RMS per satellite, split into radial/along/cross-track) and
+  `sp3 reassign IN.sp3 L01 L99 -o OUT.sp3` (rename a satellite ID)
+- `tle_to_sp3` — generate SP3 files from TLEs (SGP4)
 
 After installing the package into a venv these commands are available on
 `$PATH` (from `.venv/bin`). Tests rely on the entry points being discoverable

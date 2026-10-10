@@ -43,6 +43,7 @@ merge_rinex_nav = "pygnss.rinex:merge_nav_cli"
 rinex_to_parquet = "pygnss.rinex:rinex_to_parquet"
 leo_csv_to_rinex = "pygnss.leo.csv_to_rinex:cli"
 tle_to_sp3 = "pygnss.orbit.tle_to_sp3:cli"
+sp3 = "pygnss.orbit.sp3:cli"
 
 [tool.semantic_release]
 version_variables = [
