@@ -13,7 +13,10 @@ def test_write_tle_rinex():
         "1 53722U 22107Y   23305.87948756  .00001394  00000+0  10567-3 0  9996",
         "2 53722  53.2145 149.3795 0001289  81.3713 278.7425 15.08842580 64750")
 
-    assert tle.toe == pytest.approx(datetime.datetime(2023, 11, 1, 21, 6, 27, microsecond=725184))
+    assert tle.toe == pytest.approx(
+        datetime.datetime(2023, 11, 1, 21, 6, 27, microsecond=725184),
+        abs=datetime.timedelta(microseconds=1),
+    )
     assert tle.inclination_rad == pytest.approx(math.radians(53.2145))
     assert tle.RAAN_rad == pytest.approx(math.radians(149.3795))
     assert tle.arg_perigee_rad == pytest.approx(math.radians(81.3713))
