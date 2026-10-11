@@ -43,6 +43,21 @@ def test_unknown_satellite():
                 io.StringIO(), resolver=SatNameResolver())
 
 
+def test_six_digit_norad_round_trip(tmp_path):
+    csv = io.StringIO('id,constellation,satellite_name,frequency,doppler,snr,timestamp_utc\n'
+                      '1,iridium,IRIDIUM 999,1626270833,1.0,10.0,01-10-2026 00:00:01.000000000\n')
+    output = tmp_path / 'six_digit.rnx'
+    with output.open('w') as fh:
+        convert(csv, fh, resolver=SatNameResolver({'IRIDIUM 999': 100972}), time_system='utc')
+
+    text = output.read_text()
+    assert 'RINEX-LEO 2.00' in text
+    assert 'D100972' in text
+    df = to_dataframe(str(output))
+    assert df.iloc[0]['sat'] == 'D100972'
+    assert int(df.iloc[0]['sat'][1:]) == 100972
+
+
 def test_round_trip(rinex_file):
     path, n_epochs = rinex_file
     csv, _ = read_leo_csv(CSV)
@@ -72,7 +87,7 @@ def test_utc_time_system():
 def test_orbcomm_frequency_slots(rinex_file):
     path, _ = rinex_file
     csv, _ = read_leo_csv(CSV)
-    orbcomm = [line for line in open(path) if line.startswith('B41182')]
+    orbcomm = [line for line in open(path) if line.startswith('B041182')]
     slots = sorted(int(line[44:58].split('.')[0]) for line in orbcomm)
     expected = sorted(int(round((f - 137.2e6) / 2500)) for f in csv[csv['constellation'] == 'orbcomm']['frequency'])
     assert slots == expected
@@ -93,7 +108,7 @@ def test_globalstar_only(tmp_path):
 
     assert len(df) == len(csv) == 823
     assert set(df['constellation']) == {'A'}
-    assert set(df['sat']) == {'A37741', 'A38045', 'A39076'}
+    assert set(df['sat']) == {'A037741', 'A038045', 'A039076'}
     assert np.allclose(np.sort(df['doppler'].to_numpy()), np.sort(csv['doppler'].to_numpy()), atol=1e-3)
     assert np.allclose(np.sort(df['snr'].to_numpy()), np.sort(csv['snr'].to_numpy()), atol=1e-3)
 
@@ -107,7 +122,7 @@ def test_rinex_to_parquet_leo(rinex_file, tmp_path):
     assert len(df) == 873
     assert set(df['station']) == {'test'}
     assert set(df['constellation']) == {'A', 'B', 'D'}
-    assert {'A37741', 'B41182', 'D41921'} <= set(df['sat'])
+    assert {'A037741', 'B041182', 'D041921'} <= set(df['sat'])
 
     csv, _ = read_leo_csv(CSV)
     orbcomm = df[df['constellation'] == 'B']

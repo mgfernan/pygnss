@@ -173,7 +173,7 @@ def _comment_lines(sat_map: Dict[str, int], names: Dict[str, str], extra: Sequen
 
     current = 'NORAD'
     for sat, norad in sat_map.items():
-        token = f' {sat}={norad:05d}'
+        token = f' {sat}={norad:06d}'
         if len(current) + len(token) > COMMENT_WIDTH:
             lines.append(current)
             current = 'NORAD'

@@ -62,7 +62,7 @@ def format_header(header: ObsHeader) -> str:
     >>> h = ObsHeader({'X': ['D1C', 'S1C']}, marker_name='LEO1', date=datetime.datetime(2026, 1, 2, 3, 4, 5))
     >>> print(format_header(h), end='')
          4.01           OBSERVATION DATA    M                   RINEX VERSION / TYPE
-    RINEX-LEO 1.00                                              RINEX-LEO EXTENSION
+    RINEX-LEO 2.00                                              RINEX-LEO EXTENSION
     pygnss                                  20260102 030405 UTC PGM / RUN BY / DATE
     LEO1                                                        MARKER NAME
     X    2 D1C S1C                                              SYS / # / OBS TYPES
@@ -126,11 +126,11 @@ def format_obs_line(satellite: Satellite, values: Sequence[Optional[float]],
                     llis: Optional[Sequence[int]] = None, snrs: Optional[Sequence[int]] = None) -> str:
     """
     Format the observation line of a satellite. The satellite identifier is A1,I2
-    for MEO satellites and A1,I5 for LEO ones (RINEX-LEO extension).
+    for MEO satellites and A1,I6 for LEO ones (RINEX-LEO extension).
     Missing (None or NaN) observations are left blank
 
-    >>> format_obs_line(Satellite.from_string('Z43012'), [732793.036, 732794.384])
-    'Z43012    732793.036      732794.384'
+    >>> format_obs_line(Satellite.from_string('Z043012'), [732793.036, 732794.384])
+    'Z043012    732793.036      732794.384'
     >>> format_obs_line(Satellite.from_string('G23'), [24718012.436, None, 1.0], snrs=[7, 0, 0])
     'G23  24718012.436 7                         1.000'
     """

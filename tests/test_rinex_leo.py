@@ -8,7 +8,7 @@ from pygnss.rinex import (InvalidLeoExtension, InvalidRinexHeader, UnsupportedLe
                           get_obs_line_parser, parse_header, parse_obs_line, to_dataframe)
 
 VERSION_LINE = "     4.01           OBSERVATION DATA    M                   RINEX VERSION / TYPE"
-LEO_LINE = "RINEX-LEO 1.00                                              RINEX-LEO EXTENSION"
+LEO_LINE = "RINEX-LEO 2.00                                              RINEX-LEO EXTENSION"
 OBS_G_LINE = "G    4 C1C L1C C2W L2W                                      SYS / # / OBS TYPES"
 OBS_Z_LINE = "Z    2 D1C S1C                                              SYS / # / OBS TYPES"
 END_LINE = "                                                            END OF HEADER"
@@ -28,7 +28,7 @@ def test_parse_header_leo():
 
     assert header.is_leo
     assert header.version == 4.01
-    assert header.leo_extension_version == (1, 0)
+    assert header.leo_extension_version == (2, 0)
     assert header.marker_name == 'AB33'
     assert header.approx_position_xyz == (4780861.4222, 176383.0427, 4204318.1078)
     assert list(header.obs_types) == ['G', 'Z']
@@ -44,12 +44,12 @@ def test_parse_header_without_leo_extension():
 def test_parse_header_accepts_backwards_compatible_minor():
     """RINEX header :: A newer minor version of the extension is accepted"""
 
-    line = LEO_LINE.replace('1.00', '1.05')
-    assert parse_header(iter([VERSION_LINE, line, END_LINE])).leo_extension_version == (1, 5)
+    line = LEO_LINE.replace('2.00', '2.05')
+    assert parse_header(iter([VERSION_LINE, line, END_LINE])).leo_extension_version == (2, 5)
 
 
 @pytest.mark.parametrize("lines, exception", [
-    ([VERSION_LINE, LEO_LINE.replace('1.00', '2.00'), END_LINE], UnsupportedLeoExtensionVersion),
+    ([VERSION_LINE, LEO_LINE.replace('2.00', '1.00'), END_LINE], UnsupportedLeoExtensionVersion),
     ([VERSION_LINE, LEO_LINE, LEO_LINE, END_LINE], InvalidLeoExtension),
     ([VERSION_LINE, OBS_G_LINE, LEO_LINE, END_LINE], InvalidLeoExtension),
     ([VERSION_LINE, _label('LEO 1.00', 'RINEX-LEO EXTENSION'), END_LINE], InvalidLeoExtension),
@@ -68,8 +68,8 @@ def test_obs_line_parsers():
     assert type(get_obs_line_parser('G')).__name__ == 'MeoObsLineParser'
     assert type(get_obs_line_parser('Z')).__name__ == 'LeoObsLineParser'
 
-    sat, values = parse_obs_line("Z43012    732793.036 3    732794.384", 2)
-    assert str(sat) == 'Z43012'
+    sat, values = parse_obs_line("Z043012    732793.036 3    732794.384", 2)
+    assert str(sat) == 'Z043012'
     assert sat.prn == 43012
     assert [v.value for v in values] == [732793.036, 732794.384]
     assert [v.snr for v in values] == [3, 0]
@@ -82,7 +82,7 @@ def test_to_dataframe_mixed_meo_leo():
         VERSION_LINE, LEO_LINE, OBS_G_LINE, OBS_Z_LINE, END_LINE,
         "> 2022 12 20 12  1  4.6030000  0 2",
         "G23  24718012.436   129894024.173    24718009.543   101216196.673",
-        "Z43012    732793.036      732794.384",
+        "Z043012    732793.036      732794.384",
         ""])
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -92,8 +92,8 @@ def test_to_dataframe_mixed_meo_leo():
 
         df = to_dataframe(filename)
 
-    assert sorted(df['sat'].unique()) == ['G23', 'Z43012']
-    leo = df[df['sat'] == 'Z43012'].iloc[0]
+    assert sorted(df['sat'].unique()) == ['G23', 'Z043012']
+    leo = df[df['sat'] == 'Z043012'].iloc[0]
     assert leo['doppler'] == 732793.036
     assert leo['snr'] == 732794.384
 
@@ -118,15 +118,15 @@ def test_leo_constellation_table(letter, name):
     assert constellation.is_leo()
     assert RinexSatIdFactory.create(constellation).get_constellation_letter() == letter
 
-    assert str(Satellite.from_string(f'{letter}00123')) == f'{letter}00123'
-    assert _get_eph_type_from_rinex4_nav_block_header(f'> EPH {letter}00123') == EphType(letter)
+    assert str(Satellite.from_string(f'{letter}000123')) == f'{letter}000123'
+    assert _get_eph_type_from_rinex4_nav_block_header(f'> EPH {letter}000123') == EphType(letter)
 
-    sat, _ = parse_obs_line(f'{letter}00123    732793.036', 1)
+    sat, _ = parse_obs_line(f'{letter}000123    732793.036', 1)
     assert (sat.constellation, sat.prn) == (constellation, 123)
 
 
 NAV_HEADER = """     4.01           NAVIGATION DATA     M                   RINEX VERSION / TYPE
-RINEX-LEO 1.00                                              RINEX-LEO EXTENSION
+RINEX-LEO 2.00                                              RINEX-LEO EXTENSION
                                                             END OF HEADER
 """
 
@@ -146,29 +146,44 @@ NAV_BLOCK = """> EPH {sat}
 def test_nav_loads_every_leo_constellation(letter):
     from pygnss.rinex import Nav
 
-    sat = f'{letter}02434'
-    nav = Nav(io.StringIO(NAV_HEADER + NAV_BLOCK.format(sat=sat) + NAV_BLOCK.format(sat='X00001')))
+    sat = f'{letter}100972'
+    nav = Nav(io.StringIO(NAV_HEADER + NAV_BLOCK.format(sat=sat) + NAV_BLOCK.format(sat='X000001')))
 
-    assert [str(b.satellite) for b in nav.blocks] == [sat, 'X00001']
+    assert [str(b.satellite) for b in nav.blocks] == [sat, 'X000001']
     assert all(len(b.lines) == 9 for b in nav.blocks)
+
+
+def test_nav_writer_formats_six_digit_norad():
+    import datetime
+
+    from pygnss.gnss.types import ConstellationId, Satellite
+    from pygnss.orbit.kepler import Kepler
+    from pygnss.rinex.clock import Clock, ZeroCodeBiases
+    from pygnss.rinex.nav import Nav
+
+    satellite = Satellite(ConstellationId.STARLINK, 100972)
+    orbit = Kepler(datetime.datetime(2026, 10, 1), 7_000_000, 0.001, 0.5, 1.0, 0.2, 0.3)
+    block = Nav.create_leo_navblock(satellite, orbit, Clock(0, 0, 0), ZeroCodeBiases())
+
+    assert block.lines[0] == '> EPH X100972'
 
 
 def test_obs_mixed_meo_and_leo_epoch(tmp_path):
     from pygnss.rinex import to_dataframe
 
     content = """     4.01           OBSERVATION DATA    M                   RINEX VERSION / TYPE
-RINEX-LEO 1.00                                              RINEX-LEO EXTENSION
+RINEX-LEO 2.00                                              RINEX-LEO EXTENSION
 TEST                                                        MARKER NAME
 G    2 C1C L1C                                              SYS / # / OBS TYPES
 Z    2 C1C D1C                                              SYS / # / OBS TYPES
                                                             END OF HEADER
 > 2022 12 20 12  1  4.6030000  0  2
 G23  24718012.436   129894024.173
-Z43012    732793.036      732794.384
+Z043012    732793.036      732794.384
 """
     path = tmp_path / 'mixed.rnx'
     path.write_text(content)
 
     df = to_dataframe(str(path))
-    assert sorted(df['sat']) == ['G23', 'Z43012']
-    assert df[df['sat'] == 'Z43012'].iloc[0]['doppler'] == 732794.384
+    assert sorted(df['sat']) == ['G23', 'Z043012']
+    assert df[df['sat'] == 'Z043012'].iloc[0]['doppler'] == 732794.384

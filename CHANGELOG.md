@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+### Breaking changes
+
+- RINEX-LEO extension version 2.00 uses six-digit LEO satellite IDs. Version 1.x
+  observation files are rejected by the updated reader.
 
 ## v0.7.0 (2025-03-24)
 

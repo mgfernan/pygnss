@@ -14,7 +14,7 @@ RINEX_LINE_APPROX_POSITION = "APPROX POSITION XYZ"
 LEO_EXTENSION_NAME = "RINEX-LEO"
 
 # Highest RINEX-LEO extension version understood by this reader
-SUPPORTED_LEO_EXTENSION_MAJOR = 1
+SUPPORTED_LEO_EXTENSION_MAJOR = 2
 SUPPORTED_LEO_EXTENSION_MINOR = 0
 
 _MAX_OBS_TYPES_PER_LINE = 13
@@ -113,12 +113,12 @@ def parse_leo_extension_line(line: str) -> Tuple[int, int]:
     """
     Parse the RINEX-LEO EXTENSION header record and validate the version
 
-    >>> parse_leo_extension_line("RINEX-LEO 1.00                                              RINEX-LEO EXTENSION")
-    (1, 0)
     >>> parse_leo_extension_line("RINEX-LEO 2.00                                              RINEX-LEO EXTENSION")
+    (2, 0)
+    >>> parse_leo_extension_line("RINEX-LEO 1.00                                              RINEX-LEO EXTENSION")
     Traceback (most recent call last):
     ...
-    pygnss.rinex.header.UnsupportedLeoExtensionVersion: Unsupported RINEX-LEO extension version 2.0 (supported: 1.x)
+    pygnss.rinex.header.UnsupportedLeoExtensionVersion: Unsupported RINEX-LEO extension version 1.0 (supported: 2.x)
     >>> parse_leo_extension_line("LEO 1.00                                                    RINEX-LEO EXTENSION")
     Traceback (most recent call last):
     ...
@@ -145,13 +145,13 @@ def parse_header(lines: Iterator[str]) -> RinexHeader:
 
     >>> doc = [
     ... "     4.01           OBSERVATION DATA    M                   RINEX VERSION / TYPE",
-    ... "RINEX-LEO 1.00                                              RINEX-LEO EXTENSION",
+    ... "RINEX-LEO 2.00                                              RINEX-LEO EXTENSION",
     ... "G    4 C1C L1C C2W L2W                                      SYS / # / OBS TYPES",
     ... "Z    2 D1C S1C                                              SYS / # / OBS TYPES",
     ... "                                                            END OF HEADER"]
     >>> header = parse_header(iter(doc))
     >>> header.version, header.file_type, header.satellite_system, header.leo_extension_version
-    (4.01, 'O', 'M', (1, 0))
+    (4.01, 'O', 'M', (2, 0))
     >>> header.obs_types['Z']
     [D1C, S1C]
     """

@@ -34,7 +34,7 @@ def test_build_sp3():
 
     assert lines[0].startswith('#dP2024  2 17 13  0 18.00000000')
     assert lines[2].startswith('+    2   L01L02')
-    assert any(ln == '/* NORAD L01=25544 L02=25545' for ln in lines)
+    assert any(ln == '/* NORAD L01=025544 L02=025545' for ln in lines)
     assert lines[-1] == 'EOF'
     assert sum(ln.startswith('*') for ln in lines) == 7
 
@@ -71,7 +71,7 @@ def test_cli_single_file_with_many_tles(tmp_path):
 
     lines = out.read_text().splitlines()
     assert lines[2].startswith('+    1   L01')
-    assert '/* NORAD L01=40044' in lines
+    assert '/* NORAD L01=040044' in lines
     assert sum(ln.startswith('PL01') for ln in lines) == 97
     assert lines[-1] == 'EOF'
 
@@ -95,7 +95,7 @@ def test_sat_id_assignment():
     out = build_sp3(_sample(3), start, start, 300.0, sat_id_map={25545: 'L01', 25544: 'L42'})
     lines = out.splitlines()
     assert lines[2].startswith('+    3   L01L02L42')
-    assert '/* NORAD L01=25545 L02=25546 L42=25544' in lines
+    assert '/* NORAD L01=025545 L02=025546 L42=025544' in lines
 
 
 def test_sat_id_assignment_duplicate():
@@ -112,7 +112,7 @@ def test_cli_sat_id(tmp_path):
     cli([str(tle_file), '-o', str(out), '--start', '2026-10-05T12:00:00', '--end', '2026-10-05T13:00:00',
          '--sat-id', '40044=L05'])
     lines = out.read_text().splitlines()
-    assert '/* NORAD L05=40044' in lines
+    assert '/* NORAD L05=040044' in lines
     assert any(ln.startswith('PL05') for ln in lines)
 
     with pytest.raises(SystemExit):

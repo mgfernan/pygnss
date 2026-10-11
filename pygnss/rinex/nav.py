@@ -8,7 +8,7 @@ from typing import Dict, List, Union, IO
 from .. import logger
 from .. import time
 from ..file import process_filename_or_file_handler, skip_lines
-from ..gnss.types import ConstellationId, TrackingChannel, Satellite
+from ..gnss.types import ConstellationId, TrackingChannel, Satellite, LEO_SATELLITE_ID_DIGITS
 
 from ..orbit.tle import TLE
 from ..orbit.kepler import Kepler
@@ -847,7 +847,7 @@ class Nav(object):
 
         >>> Nav._get_eph_block_lines(EphType.GPS_LNAV, Satellite.from_string('G01'))
         8
-        >>> Nav._get_eph_block_lines(EphType.GLOBALSTAR, Satellite.from_string('A37741'))
+        >>> Nav._get_eph_block_lines(EphType.GLOBALSTAR, Satellite.from_string('A037741'))
         8
         """
 
@@ -1008,7 +1008,8 @@ class Nav(object):
         lines = []
 
         # Header line
-        lines.append(f'> EPH {satellite.constellation.to_char()}{satellite.prn:05d}')
+        lines.append(
+            f'> EPH {satellite.constellation.to_char()}{satellite.prn:0{LEO_SATELLITE_ID_DIGITS}d}')
 
         # EPOCH - CLK epoch
         lines.append(orbit.toe.strftime('    %Y %m %d %H %M %S') +
@@ -1325,7 +1326,7 @@ def _get_eph_type_from_rinex4_nav_block_header(block_header: str) -> EphType:
     >>> _get_eph_type_from_rinex4_nav_block_header('> EPH G01 LNAV')
     <EphType.GPS_LNAV: 'G_LNAV'>
 
-    >>> _get_eph_type_from_rinex4_nav_block_header('> EPH X02434')
+    >>> _get_eph_type_from_rinex4_nav_block_header('> EPH X002434')
     <EphType.STARLINK: 'X'>
     """
 

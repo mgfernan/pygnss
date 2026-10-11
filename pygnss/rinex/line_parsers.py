@@ -51,7 +51,7 @@ class MeoObsLineParser(ObsLineParser):
 
 
 class LeoObsLineParser(ObsLineParser):
-    """Parser for LEO lines (A1,I5 satellite identifier), as defined by RINEX-LEO"""
+    """Parser for LEO lines (A1,I6 satellite identifier), as defined by RINEX-LEO"""
 
     @property
     def sat_id_width(self) -> int:
@@ -90,8 +90,8 @@ ObservableValue(value=161300483.444, lli=0, snr=7), \
 ObservableValue(value=40058861.947, lli=0, snr=7), \
 ObservableValue(value=169502210.295, lli=0, snr=7)])
 
-    >>> parse_obs_line("Z43012    732793.036      732794.384", 2)
-    (Z43012, [ObservableValue(value=732793.036, lli=0, snr=0), ObservableValue(value=732794.384, lli=0, snr=0)])
+    >>> parse_obs_line("Z043012    732793.036      732794.384", 2)
+    (Z043012, [ObservableValue(value=732793.036, lli=0, snr=0), ObservableValue(value=732794.384, lli=0, snr=0)])
     """
 
     return get_obs_line_parser(line[0]).parse(line, n_obs)

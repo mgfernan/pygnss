@@ -11,11 +11,12 @@ def test_doctest():
 
 
 def test_satellite_id_roundtrip():
-    """Satellite :: MEO ids use 2 digits and LEO ids 5 digits"""
+    """Satellite :: MEO ids use 2 digits and LEO ids 6 digits"""
 
     from pygnss.gnss.types import Satellite
 
-    for text in ['G07', 'E36', 'X02434', 'V10000', 'Z43012']:
+    for text in ['G07', 'E36', 'X002434', 'V010000', 'Z043012', 'X100972']:
         assert str(Satellite.from_string(text)) == text
 
-    assert Satellite.from_string('X02434').prn == 2434
+    assert Satellite.from_string('X002434').prn == 2434
+    assert Satellite.from_string('X100972').prn == 100972

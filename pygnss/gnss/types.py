@@ -41,7 +41,7 @@ class ConstellationId(Enum):
 
     def is_leo(self) -> bool:
         """
-        Whether the constellation is a LEO one (satellite ids with up to 5 digits)
+        Whether the constellation is a LEO one (satellite ids with up to 6 digits)
 
         >>> ConstellationId.STARLINK.is_leo()
         True
@@ -321,7 +321,7 @@ class ChannelCode(Enum):
 
 
 MEO_SATELLITE_ID_DIGITS = 2
-LEO_SATELLITE_ID_DIGITS = 5
+LEO_SATELLITE_ID_DIGITS = 6
 
 
 @dataclass
@@ -333,15 +333,15 @@ class Satellite:
     def from_string(satellite: str) -> 'Satellite':
         """
         Build a satellite from its RINEX identifier: constellation letter followed
-        by the satellite number (2 digits for MEO GNSS, 5 digits for LEO)
+        by the satellite number (2 digits for MEO GNSS, 6 digits for LEO)
 
         >>> Satellite.from_string('G07')
         G07
         >>> Satellite.from_string('G 7')
         G07
-        >>> Satellite.from_string('X02434')
-        X02434
-        >>> Satellite.from_string('X02434').prn
+        >>> Satellite.from_string('X002434')
+        X002434
+        >>> Satellite.from_string('X002434').prn
         2434
         >>> Satellite.from_string('G')
         Traceback (most recent call last):
@@ -370,7 +370,7 @@ class Satellite:
         >>> Satellite(ConstellationId.GPS, 3)
         G03
         >>> Satellite(ConstellationId.STARLINK, 2434)
-        X02434
+        X002434
         """
 
         width = LEO_SATELLITE_ID_DIGITS if self.constellation.is_leo() else MEO_SATELLITE_ID_DIGITS
